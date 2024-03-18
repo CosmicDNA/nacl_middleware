@@ -21,9 +21,17 @@ CONFIG_DIR = './'
 class EngineServerManager():
     """Manages a server that exposes the Plover engine."""
 
-    def __init__(self):
-        self._server: Optional[EngineServer] = None
+    _server: EngineServer
+    def __init__(self) -> None:
+        self._server = None
         self._config_path: str = os.path.join(CONFIG_DIR, SERVER_CONFIG_FILE)
+        if self.get_server_status() != ServerStatus.Stopped:
+            raise AssertionError(ERROR_SERVER_RUNNING)
+
+        self._config = ServerConfig(self._config_path)  # reload the configuration when the server is restarted
+
+        self._server = WebSocketServer(self._config.host, self._config.port, self._config.ssl, self._config.remotes, self._config.private_key)
+        self._server.register_message_callback(self._on_message)
 
     def start(self):
         """Starts the server.
@@ -32,14 +40,6 @@ class EngineServerManager():
             AssertionError: The server failed to start.
             IOError: The server failed to start.
         """
-
-        if self.get_server_status() != ServerStatus.Stopped:
-            raise AssertionError(ERROR_SERVER_RUNNING)
-
-        self._config = ServerConfig(self._config_path)  # reload the configuration when the server is restarted
-
-        self._server = WebSocketServer(self._config.host, self._config.port, self._config.ssl, self._config.remotes, self._config.private_key)
-        self._server.register_message_callback(self._on_message)
         self._server.start()
 
     def stop(self):
@@ -69,6 +69,9 @@ class EngineServerManager():
 
     def join(self) -> None:
         self._server.join()
+
+    def add_listener(self, listener: callable) -> None:
+        self._server.add_listener(listener)
 
     def _on_message(self, data: dict):
         self._server.queue_message(data)

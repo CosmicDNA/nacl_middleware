@@ -3,6 +3,7 @@
 from enum import Enum, auto
 from threading import Thread
 import asyncio
+from pynacl_middleware_canonical_example.listens import Listens
 
 
 class ServerStatus(Enum):
@@ -17,21 +18,21 @@ class ServerStatus(Enum):
     Running = auto()
 
 
-class EngineServer:
+class EngineServer(Listens):
     """A server example.
 
     Attributes:
         status: The current status of the server.
     """
 
-    def __init__(self, host: str, port: str):
+    def __init__(self, host: str, port: str) -> None:
         """Initialize the server.
 
         Args:
             host: The host address for the server to run on.
             port: The port for the server to run on.
         """
-
+        super().__init__()
         self._thread = Thread(target=self._start)
         # it's not recommended to subclass Thread because some of its methods
         # might be accidentally overloaded, for example _stop.
@@ -42,10 +43,10 @@ class EngineServer:
 
         self._loop = None
         self._callbacks = []
-        self.status: ServerStatus = ServerStatus.Stopped
 
     def start(self):
         """Function to start the server (external thread)."""
+        self.status: ServerStatus = ServerStatus.Stopped
         self._thread.start()
 
     def join(self):

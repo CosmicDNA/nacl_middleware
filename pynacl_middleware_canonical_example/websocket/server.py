@@ -34,6 +34,7 @@ class WebSocketServer(EngineServer):
     _ssl: SSLConfig
     _remotes: list[object]
     _private_key: PrivateKey
+
     def __init__(self, host: str, port: str, ssl: dict, remotes: list[object], private_key: PrivateKey) -> None:
         """Initialize the server.
 
