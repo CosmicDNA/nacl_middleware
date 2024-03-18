@@ -5,6 +5,7 @@ from aiohttp import WSMsgType
 from asyncio import CancelledError
 from json import loads
 from pynacl_middleware_canonical_example.logger import log
+from pynacl_middleware_canonical_example.websocket.app_keys import app_keys
 
 async def index(request: Request) -> Response:
     """Index endpoint for the server. Not really needed.
@@ -24,7 +25,7 @@ async def websocket_handler(request: Request) -> WebSocketResponse:
     log.info('WebSocket connection starting')
     socket = WebSocketResponse()
     await socket.prepare(request)
-    sockets = request.app['websockets']
+    sockets = request.app[app_keys['websockets']]
     sockets.append(socket)
     log.info('WebSocket connection ready')
 
@@ -43,7 +44,7 @@ async def websocket_handler(request: Request) -> WebSocketResponse:
                     continue
 
                 if isinstance(data, dict):
-                    callback = request.app['on_message_callback']
+                    callback = request.app[app_keys['on_message_callback']]
                     try:
                         callback(data)
                     except:

@@ -2,7 +2,7 @@
 
 from asyncio import Event, set_event_loop, new_event_loop
 
-from aiohttp.web import Request, Response, Application, AppRunner, TCPSite, json_response
+from aiohttp.web import Request, Response, Application, AppRunner, TCPSite, AppKey, json_response
 from aiohttp import WSCloseCode
 from aiohttp_middlewares import cors_middleware
 from aiohttp_middlewares.cors import DEFAULT_ALLOW_HEADERS, DEFAULT_ALLOW_METHODS
@@ -10,6 +10,7 @@ from pynacl_middleware_canonical_example.websocket.nacl_middleware import nacl_m
 from pynacl_middleware_canonical_example.websocket.views import index, websocket_handler
 from pynacl_middleware_canonical_example.logger import log
 from nacl.public import PrivateKey
+from pynacl_middleware_canonical_example.websocket.app_keys import app_keys
 
 
 from pynacl_middleware_canonical_example.errors import (
@@ -100,12 +101,12 @@ class WebSocketServer(EngineServer):
 		])
 
         async def on_shutdown(app):
-            for ws in set(app['websockets']):
+            for ws in set(app[app_keys['websockets']]):
                 await ws.close()
         self._app.on_shutdown.append(on_shutdown)
 
-        self._app['websockets'] = []
-        self._app['on_message_callback'] = self._on_message
+        self._app[app_keys['websockets']] = []
+        self._app[app_keys['on_message_callback']] = self._on_message
 
         self._app.router.add_get('/', index)
         self._app.router.add_get('/protocol', self.protocol)

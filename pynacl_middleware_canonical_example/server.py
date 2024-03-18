@@ -44,16 +44,16 @@ class EngineServer(Listens):
         self._loop = None
         self._callbacks = []
 
-    def start(self):
+    def start(self) -> None:
         """Function to start the server (external thread)."""
         self.status: ServerStatus = ServerStatus.Stopped
         self._thread.start()
 
-    def join(self):
+    def join(self) -> None:
         """Function to stop the underlying thread."""
         self._thread.join()
 
-    def queue_message(self, data: dict):
+    def queue_message(self, data: dict) -> None:
         """Queues a message for the server to broadcast.
 
         Assumes it is called from a thread different from the event loop.
@@ -68,7 +68,7 @@ class EngineServer(Listens):
         asyncio.run_coroutine_threadsafe(self._broadcast_message(data),
                                          self._loop)
 
-    def queue_stop(self):
+    def queue_stop(self) -> None:
         """Queues the server to stop.
 
         Assumes it is called from a thread different from the event loop.
@@ -79,7 +79,7 @@ class EngineServer(Listens):
 
         asyncio.run_coroutine_threadsafe(self._stop(), self._loop)
 
-    def _start(self):
+    def _start(self) -> None:
         """Starts the server.
 
         Will create a blocking event loop.
@@ -87,7 +87,7 @@ class EngineServer(Listens):
 
         raise NotImplementedError()
 
-    async def _stop(self):
+    async def _stop(self) -> None:
         """Stops the server.
 
         Performs any clean up operations as needed.
@@ -95,7 +95,7 @@ class EngineServer(Listens):
 
         raise NotImplementedError()
 
-    async def _broadcast_message(self, data: dict):
+    async def _broadcast_message(self, data: dict) -> None:
         """Broadcasts a message to connected clients.
 
         Args:
@@ -104,7 +104,7 @@ class EngineServer(Listens):
 
         raise NotImplementedError()
 
-    def register_message_callback(self, callback):
+    def register_message_callback(self, callback) -> None:
         self._callbacks.append(callback)
 
     def _on_message(self, data: dict):

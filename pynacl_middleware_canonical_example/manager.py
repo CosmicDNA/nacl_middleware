@@ -33,7 +33,7 @@ class EngineServerManager():
         self._server = WebSocketServer(self._config.host, self._config.port, self._config.ssl, self._config.remotes, self._config.private_key)
         self._server.register_message_callback(self._on_message)
 
-    def start(self):
+    def start(self) -> None:
         """Starts the server.
 
         Raises:
@@ -42,7 +42,7 @@ class EngineServerManager():
         """
         self._server.start()
 
-    def stop(self):
+    def stop(self) -> None:
         """Stops the server.
 
         Raises:
