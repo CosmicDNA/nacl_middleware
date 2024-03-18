@@ -149,7 +149,7 @@ class WebSocketServer(EngineServer):
             app: The web application shutting down.
         """
 
-        for socket in app.get('websockets', []):
+        for socket in app.get(app_keys['websockets'], []):
             await socket.close(code=WSCloseCode.GOING_AWAY,
                                message='Server shutdown')
 
@@ -163,7 +163,7 @@ class WebSocketServer(EngineServer):
         if not self._app:
             return
 
-        sockets=self._app.get('websockets', [])
+        sockets=self._app.get(app_keys['websockets'], [])
         for socket in sockets:
             try:
                 await socket.send_json(data)
