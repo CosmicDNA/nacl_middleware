@@ -1,6 +1,5 @@
 """The middleman between Plover and the server."""
 
-from typing import Optional
 import os
 
 from pynacl_middleware_canonical_example.errors import (
