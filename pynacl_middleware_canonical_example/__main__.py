@@ -1,9 +1,11 @@
 from pynacl_middleware_canonical_example.manager import EngineServerManager
+from asyncio import get_event_loop
 
-def main():
+async def main():
   esm = EngineServerManager()
   esm.start()
   esm.join()
 
 if __name__ == "__main__":
-    main()
+    loop = get_event_loop()
+    loop.run_until_complete(main())

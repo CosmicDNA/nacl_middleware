@@ -1,4 +1,4 @@
-import asyncio
+from asyncio import get_event_loop
 from pynacl_middleware_canonical_example.manager import EngineServerManager, ServerStatus
 
 esm = EngineServerManager()
@@ -14,5 +14,5 @@ async def run_me():
     esm.join()
 
 def test_answer():
-    loop = asyncio.get_event_loop()
+    loop = get_event_loop()
     loop.run_until_complete(run_me())
