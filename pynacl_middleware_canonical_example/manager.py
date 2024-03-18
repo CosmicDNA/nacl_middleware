@@ -67,5 +67,8 @@ class EngineServerManager():
 
         return self._server.status if self._server else ServerStatus.Stopped
 
+    def join(self) -> None:
+        self._server.join()
+
     def _on_message(self, data: dict):
         self._server.queue_message(data)
