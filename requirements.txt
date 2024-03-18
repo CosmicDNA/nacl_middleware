@@ -1,0 +1,3 @@
+pynacl
+aiohttp
+aiohttp_middlewares
