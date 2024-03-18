@@ -11,5 +11,3 @@ def create_app_keys_from_list(key_strings):
 
 keys_to_create = ['websockets', 'on_message_callback']
 app_keys = create_app_keys_from_list(keys_to_create)
-
-print(app_keys['websockets'])
