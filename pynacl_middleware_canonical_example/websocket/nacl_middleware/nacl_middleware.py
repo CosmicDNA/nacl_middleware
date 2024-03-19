@@ -46,8 +46,7 @@ def nacl_middleware(private_key: PrivateKey,
                 decrypted_message = my_mail_box.decrypt(incoming_base64_encrypted_message, encoder=Base64Encoder)
                 log.debug(f'Message {decrypted_message} decrypted!')
 
-                content = await request.content.read()
-                log.debug(f'Request content is {content.decode()}')
+                request['decrypted_message'] = decrypted_message
             except Exception:
                 the_exc_info = exc_info()
                 exception_str = ''.join(format_exception(*the_exc_info))
