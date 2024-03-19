@@ -2,7 +2,7 @@
 
 from asyncio import Event, set_event_loop, new_event_loop
 
-from aiohttp.web import Request, Response, Application, AppRunner, TCPSite, AppKey, json_response
+from aiohttp.web import Request, Response, Application, AppRunner, TCPSite, json_response
 from aiohttp import WSCloseCode
 from aiohttp_middlewares import cors_middleware
 from aiohttp_middlewares.cors import DEFAULT_ALLOW_HEADERS, DEFAULT_ALLOW_METHODS
@@ -11,7 +11,6 @@ from pynacl_middleware_canonical_example.websocket.views import index, websocket
 from pynacl_middleware_canonical_example.logger import log
 from nacl.public import PrivateKey
 from pynacl_middleware_canonical_example.websocket.app_keys import app_keys
-
 
 from pynacl_middleware_canonical_example.errors import (
     ERROR_SERVER_RUNNING,

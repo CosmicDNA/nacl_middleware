@@ -53,9 +53,6 @@ class EngineServerManager():
 
         self._server.queue_stop()
         log.info("Joining server thread...")
-        self._server.join()
-        log.info("Server thread joined.")
-        self._server = None
 
     def get_server_status(self) -> ServerStatus:
         """Gets the status of the server.
@@ -71,6 +68,9 @@ class EngineServerManager():
 
     def add_listener(self, listener: callable) -> None:
         self._server.add_listener(listener)
+
+    def stop_listening(self) -> None:
+        self._server.stop_listening()
 
     def _on_message(self, data: dict):
         self._server.queue_message(data)
