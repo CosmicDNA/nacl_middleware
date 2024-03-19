@@ -35,7 +35,7 @@ class Client:
     async def sendWebSocketMessage(self, message: str) -> None:
         url = f'ws://{self.host}:{self.port}/websocket'
 
-        origin = f'http://{self.host}:3000'
+        origin = f'http://{self.host}'
         headers: LooseHeaders = {
             'Origin': origin
         }
