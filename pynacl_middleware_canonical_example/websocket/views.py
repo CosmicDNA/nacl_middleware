@@ -46,7 +46,7 @@ async def websocket_handler(request: Request) -> WebSocketResponse:
                 if isinstance(data, dict):
                     callback = request.app[app_keys['on_message_callback']]
                     try:
-                        callback(data)
+                        callback(data, request['decryptor'])
                     except:
                         import traceback
                         traceback.print_exc()

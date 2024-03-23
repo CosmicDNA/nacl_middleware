@@ -1,6 +1,9 @@
 """The middleman between Plover and the server."""
 
 import os
+from operator import itemgetter
+from sorcery import dict_of
+from typing import Callable
 
 from pynacl_middleware_canonical_example.errors import (
     ERROR_SERVER_RUNNING,
@@ -61,16 +64,19 @@ class EngineServerManager():
             The status of the server.
         """
 
-        return self._server.status if self._server else ServerStatus.Stopped
+        return self._server.listened.status if self._server else ServerStatus.Stopped
 
     def join(self) -> None:
         self._server.join()
 
-    def add_listener(self, listener: callable) -> None:
-        self._server.add_listener(listener)
+    def add_listener(self, listener: Callable) -> None:
+        self._server.listened.add_listener(listener)
 
     def stop_listening(self) -> None:
-        self._server.stop_listening()
+        self._server.listened.stop_listening()
 
-    def _on_message(self, data: dict):
-        self._server.queue_message(data)
+    async def _on_message(self, data: dict, decryptor: callable):
+        publicKey, encryptedMessage = itemgetter('publicKey', 'encryptedMessage')(data)
+        decrypted = decryptor(dict_of(publicKey, encryptedMessage))
+        log.debug(f'Received encrypted message {decrypted}')
+        data = await self._server.queue_message(decrypted)

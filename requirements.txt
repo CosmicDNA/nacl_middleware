@@ -1,3 +1,4 @@
 pynacl
 aiohttp
 aiohttp_middlewares
+sorcery

@@ -1,5 +1,8 @@
 from typing import Tuple
-
+from multidict import MultiMapping
+from json import loads
+from sorcery import dict_of
+from operator import itemgetter
 from aiohttp import WSCloseCode
 from nacl.public import PrivateKey, PublicKey, Box
 from inspect import signature
@@ -14,11 +17,32 @@ from aiohttp.typedefs import (
 from logging import getLogger
 from pynacl_middleware_canonical_example.websocket.nacl_middleware.utils import is_exclude
 
+def custom_loads(obj):
+    if isinstance(obj, str):
+        obj = f'"{obj}"'
+    return loads(obj)
+
 def nacl_middleware(private_key: PrivateKey,
                     exclude_routes: Tuple = tuple(),
                     exclude_methods: Tuple = tuple(),
                     log = getLogger()
                    ) -> Middleware:
+
+    def nacl_decryptor(inputObject: MultiMapping[str]):
+        public_key, encrypted_message = itemgetter('publicKey', 'encryptedMessage')(inputObject)
+        log.debug(f'Decoding messager\'s public key hex...')
+        messager_public_key = PublicKey(public_key, HexEncoder)
+        log.debug(f'Messager\'s public key {messager_public_key} decoded!')
+
+        log.debug(f'Creating Box...')
+        my_mail_box = Box(private_key, messager_public_key)
+        log.debug(f'Box {my_mail_box} created!')
+
+        log.debug(f'Decrypting message...')
+        decrypted_message = my_mail_box.decrypt(encrypted_message, encoder=Base64Encoder)
+        message = custom_loads(decrypted_message)
+        log.debug(f'Message {message} decrypted!')
+        return message
 
     @middleware
     async def returned_middleware(request: Request, handler: Handler) -> StreamResponse:
@@ -26,30 +50,18 @@ def nacl_middleware(private_key: PrivateKey,
                 request.method in exclude_methods)):
 
             try:
-                log.debug(f'Retrieving publicKey from message...')
-                messager_public_key_hex = request.query.get('publicKey')
-                log.debug(f'PublicKey {messager_public_key_hex} retrieved!')
+                log.debug(f'Retrieving publicKey and encryptedMessage from message...')
+                publicKey, encryptedMessage = itemgetter('publicKey', 'encryptedMessage')(request.query)
+                log.debug(f'PublicKey {publicKey} and EncryptedMessage {encryptedMessage} retrieved!')
 
-                log.debug(f'Decoding messager\'s public key hex...')
-                messager_public_key = PublicKey(messager_public_key_hex, HexEncoder)
-                log.debug(f'Messager\'s public key {messager_public_key} decoded!')
+                decrypted_message = nacl_decryptor(dict_of(publicKey, encryptedMessage))
 
-                log.debug(f'Retrieving encryptedMessage from message...')
-                incoming_base64_encrypted_message = request.query.get('encryptedMessage')
-                log.debug(f'EncryptedMessage {incoming_base64_encrypted_message} retrieved!')
-
-                log.debug(f'Creating Box...')
-                my_mail_box = Box(private_key, messager_public_key)
-                log.debug(f'Box {my_mail_box} created!')
-
-                log.debug(f'Decrypting message...')
-                decrypted_message = my_mail_box.decrypt(incoming_base64_encrypted_message, encoder=Base64Encoder)
-                log.debug(f'Message {decrypted_message} decrypted!')
-
+                request['decryptor'] = nacl_decryptor
                 request['decrypted_message'] = decrypted_message
             except Exception:
                 the_exc_info = exc_info()
                 exception_str = ''.join(format_exception(*the_exc_info))
+                log.debug(f'Exception body: {exception_str}')
                 exception = HTTPUnauthorized(reason='Failed to retrieve a valid message!', body=exception_str)
 
                 # Inspect the handler's signature

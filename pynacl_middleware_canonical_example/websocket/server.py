@@ -79,7 +79,7 @@ class WebSocketServer(EngineServer):
 
         Will create a blocking event loop.
         """
-        if self.status == ServerStatus.Running:
+        if self.listened.status == ServerStatus.Running:
             raise AssertionError(ERROR_SERVER_RUNNING)
 
         loop = new_event_loop()
@@ -121,12 +121,12 @@ class WebSocketServer(EngineServer):
             await runner.setup()
             self._site = site = TCPSite(runner, host=self._host, port=self._port)
             await site.start()
-            self.status = ServerStatus.Running
+            self.listened.status = ServerStatus.Running
             await self._stop_event.wait()
             await runner.cleanup()
             self._app = None
             self._loop = None
-            self.status = ServerStatus.Stopped
+            self.listened.status = ServerStatus.Stopped
 
         loop.run_until_complete(run_async())
 
@@ -136,7 +136,7 @@ class WebSocketServer(EngineServer):
         Performs any clean up operations as needed.
         """
 
-        if self.status != ServerStatus.Running:
+        if self.listened.status != ServerStatus.Running:
             raise AssertionError(ERROR_NO_SERVER)
 
         self._stop_event.set()

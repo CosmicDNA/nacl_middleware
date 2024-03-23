@@ -1,5 +1,4 @@
 from asyncio import get_event_loop
-from json import dumps
 from pynacl_middleware_canonical_example.manager import EngineServerManager, ServerStatus
 from pynacl_middleware_canonical_example.config import ServerConfig
 from test.client import Client
@@ -10,9 +9,11 @@ esm = EngineServerManager()
 async def status_change_listener(status):
     if status == ServerStatus.Running:
         client = Client(server_config.host, server_config.port, server_config.private_key.public_key)
-        data = await client.sendMessage(dumps({'message': 'test'}))
+        data = await client.sendMessage({'message': 'test'})
         assert data == 'ws://'
-        await client.sendWebSocketMessage(dumps({'message': 'test'}))
+        await client.connectToWebsocket({'message': 'test'})
+        await client.sendWebSocketMessage(client.getEncryptionParams({'name': 'Georgia'}))
+        await client.disconnectWebsocket()
         esm.stop()
 
 async def server_loop_handler():

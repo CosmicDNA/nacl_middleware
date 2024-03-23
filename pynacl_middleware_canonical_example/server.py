@@ -18,12 +18,13 @@ class ServerStatus(Enum):
     Running = auto()
 
 
-class EngineServer(Listens):
+class EngineServer:
     """A server example.
 
     Attributes:
         status: The current status of the server.
     """
+    listened = Listens()
 
     def __init__(self, host: str, port: str) -> None:
         """Initialize the server.
@@ -32,7 +33,6 @@ class EngineServer(Listens):
             host: The host address for the server to run on.
             port: The port for the server to run on.
         """
-        super().__init__()
         self._thread = Thread(target=self._start)
         # it's not recommended to subclass Thread because some of its methods
         # might be accidentally overloaded, for example _stop.
@@ -43,10 +43,10 @@ class EngineServer(Listens):
 
         self._loop = None
         self._callbacks = []
+        self.listened.status = ServerStatus.Stopped
 
     def start(self) -> None:
         """Function to start the server (external thread)."""
-        self.status: ServerStatus = ServerStatus.Stopped
         self._thread.start()
 
     def join(self) -> None:
@@ -107,11 +107,11 @@ class EngineServer(Listens):
     def register_message_callback(self, callback) -> None:
         self._callbacks.append(callback)
 
-    def _on_message(self, data: dict):
+    def _on_message(self, args, *kwargs):
         """Stuff stuff. Subclasses should call this function on message received.
 
         Args:
             data: The received data.
         """
         for callback in self._callbacks:
-            callback(data)
+            callback(args, *kwargs)
