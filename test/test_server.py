@@ -9,9 +9,9 @@ esm = EngineServerManager()
 async def status_change_listener(status):
     if status == ServerStatus.Running:
         client = Client(server_config.host, server_config.port, server_config.private_key.public_key)
-        data = await client.sendMessage({'message': 'test'})
+        data = await client.sendMessage({'messageOne': 'testOne'})
         assert data == 'ws://'
-        await client.connectToWebsocket({'message': 'test'})
+        await client.connectToWebsocket({'messageTwo': 'testTwo'})
         await client.sendWebSocketMessage(client.getEncryptionParams({'name': 'Georgia'}))
         await client.disconnectWebsocket()
         esm.stop()
@@ -20,7 +20,6 @@ async def server_loop_handler():
     esm.add_listener(status_change_listener)
     esm.start()
     esm.join()
-    esm.stop_listening()
 
 def test_middleware():
     loop = get_event_loop()

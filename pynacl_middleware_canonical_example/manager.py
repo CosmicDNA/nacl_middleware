@@ -55,7 +55,6 @@ class EngineServerManager():
             raise AssertionError(ERROR_NO_SERVER)
 
         self._server.queue_stop()
-        log.info("Joining server thread...")
 
     def get_server_status(self) -> ServerStatus:
         """Gets the status of the server.
@@ -72,11 +71,8 @@ class EngineServerManager():
     def add_listener(self, listener: Callable) -> None:
         self._server.listened.add_listener(listener)
 
-    def stop_listening(self) -> None:
-        self._server.listened.stop_listening()
-
-    async def _on_message(self, data: dict, decryptor: callable):
+    def _on_message(self, data: dict, decryptor: callable):
         publicKey, encryptedMessage = itemgetter('publicKey', 'encryptedMessage')(data)
         decrypted = decryptor(dict_of(publicKey, encryptedMessage))
         log.debug(f'Received encrypted message {decrypted}')
-        data = await self._server.queue_message(decrypted)
+        self._server.queue_message(decrypted)

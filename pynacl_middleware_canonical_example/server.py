@@ -33,7 +33,7 @@ class EngineServer:
             host: The host address for the server to run on.
             port: The port for the server to run on.
         """
-        self._thread = Thread(target=self._start)
+        self._thread = Thread(target=self._start, name='ServerThread')
         # it's not recommended to subclass Thread because some of its methods
         # might be accidentally overloaded, for example _stop.
         # Documented in Python documentation: https://docs.python.org/3/library/threading.html#thread-objects
