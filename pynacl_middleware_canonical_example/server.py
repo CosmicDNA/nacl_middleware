@@ -3,6 +3,7 @@
 from enum import Enum, auto
 from threading import Thread
 import asyncio
+from asyncio import Future
 from pynacl_middleware_canonical_example.listens import Listens
 
 
@@ -53,7 +54,7 @@ class EngineServer:
         """Function to stop the underlying thread."""
         self._thread.join()
 
-    def queue_message(self, data: dict) -> None:
+    def queue_message(self, data: dict) -> Future:
         """Queues a message for the server to broadcast.
 
         Assumes it is called from a thread different from the event loop.
