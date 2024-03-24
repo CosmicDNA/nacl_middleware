@@ -142,7 +142,7 @@ class WebSocketServer(EngineServer):
             )
 		])
 
-        async def on_shutdown(app):
+        async def on_shutdown(app) -> None:
             sockets : list[WebSocketResponse] = app[app_keys['websockets']]
             for ws in set(sockets):
                 await ws.close()

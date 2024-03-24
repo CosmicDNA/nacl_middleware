@@ -34,9 +34,9 @@ class Client:
         return await fetch(self.session, url, params=self.getEncryptionParams(message))
 
     async def sendWebSocketMessage(self, message) -> None:
-        return await self.socket.send_str(dumps(message))
+        await self.socket.send_str(dumps(message))
 
-    async def connectToWebsocket(self, message):
+    async def connectToWebsocket(self, message) -> None:
         url = f'ws://{self.host}:{self.port}/websocket'
 
         origin = f'http://{self.host}'
@@ -45,5 +45,5 @@ class Client:
         }
         self.socket = await self.session.ws_connect(url, params=self.getEncryptionParams(message), headers=headers)
 
-    async def disconnectWebsocket(self):
+    async def disconnectWebsocket(self) -> None:
         await self.session.close()

@@ -17,7 +17,7 @@ from aiohttp.typedefs import (
 from logging import getLogger
 from pynacl_middleware_canonical_example.websocket.nacl_middleware.utils import is_exclude
 
-def custom_loads(obj):
+def custom_loads(obj) -> any:
     if isinstance(obj, str):
         obj = f'"{obj}"'
     return loads(obj)
@@ -28,7 +28,7 @@ def nacl_middleware(private_key: PrivateKey,
                     log = getLogger()
                    ) -> Middleware:
 
-    def nacl_decryptor(inputObject: MultiMapping[str]):
+    def nacl_decryptor(inputObject: MultiMapping[str]) -> any:
         public_key, encrypted_message = itemgetter('publicKey', 'encryptedMessage')(inputObject)
         log.debug(f'Decoding messager\'s public key hex...')
         messager_public_key = PublicKey(public_key, HexEncoder)

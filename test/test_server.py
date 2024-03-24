@@ -7,7 +7,7 @@ from test.client import Client
 server_config = ServerConfig('./config.json')
 esm = EngineServerManager()
 
-async def status_change_listener(status):
+async def status_change_listener(status) -> None:
     if status == ServerStatus.Running:
         client = Client(server_config.host, server_config.port, server_config.private_key.public_key)
         data = await client.sendMessage({'messageOne': 'testOne'})
@@ -17,14 +17,14 @@ async def status_change_listener(status):
         await client.disconnectWebsocket()
         esm.stop()
 
-async def server_loop_handler():
+async def server_loop_handler() -> None:
     esm.add_listener(status_change_listener)
     esm.start()
     esm.join()
     esm.stop_listening()
     log.info('Joining main thread...')
 
-def test_middleware():
+def test_middleware() -> None:
     loop = get_event_loop()
     loop.run_until_complete(
         server_loop_handler()

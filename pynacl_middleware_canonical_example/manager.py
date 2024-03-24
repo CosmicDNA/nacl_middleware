@@ -75,7 +75,7 @@ class EngineServerManager():
         # breakpoint() # This breakpoint disables the following warning: sys:1: RuntimeWarning: coroutine 'status_change_listener' was never awaited
         pass
 
-    async def _on_message(self, data: dict):
+    async def _on_message(self, data: dict) -> None:
         publicKey, encryptedMessage, decryptor = itemgetter('publicKey', 'encryptedMessage', 'decryptor')(data)
         decrypted = decryptor(dict_of(publicKey, encryptedMessage))
         log.debug(f'Received encrypted message {decrypted}')
