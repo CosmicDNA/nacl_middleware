@@ -70,7 +70,12 @@ class EngineServerManager():
     def add_listener(self, listener: callable) -> None:
         self._server.listened.add_listener(listener)
 
-    def _on_message(self, data: dict, decryptor: callable):
-        publicKey, encryptedMessage = itemgetter('publicKey', 'encryptedMessage')(data)
+    def stop_listening(self) -> None:
+        self._server.listened.stop_listening()
+        # breakpoint() # This breakpoint disables the following warning: sys:1: RuntimeWarning: coroutine 'status_change_listener' was never awaited
+        pass
+
+    async def _on_message(self, data: dict):
+        publicKey, encryptedMessage, decryptor = itemgetter('publicKey', 'encryptedMessage', 'decryptor')(data)
         decrypted = decryptor(dict_of(publicKey, encryptedMessage))
         log.debug(f'Received encrypted message {decrypted}')

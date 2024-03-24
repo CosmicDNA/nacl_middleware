@@ -2,12 +2,14 @@
 
 from asyncio import Event, set_event_loop, new_event_loop
 
-from aiohttp.web import Request, Response, Application, AppRunner, TCPSite, json_response
-from aiohttp import WSCloseCode
+from aiohttp.web import Request, Response, WebSocketResponse, Application, AppRunner, TCPSite, json_response
+from aiohttp import WSCloseCode, WSMsgType
+from asyncio import CancelledError
+from json import loads, decoder
 from aiohttp_middlewares import cors_middleware
 from aiohttp_middlewares.cors import DEFAULT_ALLOW_HEADERS, DEFAULT_ALLOW_METHODS
 from pynacl_middleware_canonical_example.websocket.nacl_middleware import nacl_middleware, Nacl
-from pynacl_middleware_canonical_example.websocket.views import index, websocket_handler
+from pynacl_middleware_canonical_example.websocket.views import index
 from pynacl_middleware_canonical_example.logger import log
 from nacl.public import PrivateKey
 from pynacl_middleware_canonical_example.websocket.app_keys import app_keys
@@ -34,6 +36,8 @@ class WebSocketServer(EngineServer):
     _ssl: SSLConfig
     _remotes: list[object]
     _private_key: PrivateKey
+    _runner: AppRunner
+    _site: TCPSite
 
     def __init__(self, host: str, port: str, ssl: dict, remotes: list[object], private_key: PrivateKey) -> None:
         """Initialize the server.
@@ -74,6 +78,45 @@ class WebSocketServer(EngineServer):
 
         return json_response(protocol)
 
+    async def websocket_handler(self, request: Request) -> WebSocketResponse:
+        """The main WebSocket handler.
+
+        Args:
+            request: The request from the client.
+        """
+        log.info('WebSocket connection starting')
+        socket = WebSocketResponse()
+        await socket.prepare(request)
+        sockets: list[WebSocketResponse] = request.app[app_keys['websockets']]
+        sockets.append(socket)
+        log.info('WebSocket connection ready')
+
+        try:
+            async for message in socket:
+                if message.type == WSMsgType.TEXT:
+                    if message.data == 'close':
+                        await socket.close()
+                        continue
+
+                    try:  # NOTE is this good API? What if message is not JSON/dict?
+                        self.data.status = {**loads(message.data), 'decryptor': request['decryptor']}
+                    except decoder.JSONDecodeError:
+                        log.info(f'Receive unknown data: {message.data}')
+                        continue
+
+                elif message.type == WSMsgType.ERROR:
+                    log.info('WebSocket connection closed with exception '
+                        f'{socket.exception()}')
+        except CancelledError:  # https://github.com/aio-libs/aiohttp/issues/1768
+            pass
+        finally:
+            await socket.close()
+
+
+        sockets.remove(socket)
+        log.info('WebSocket connection closed')
+        return socket
+
     def _start(self) -> None:
         """Starts the server.
 
@@ -100,16 +143,16 @@ class WebSocketServer(EngineServer):
 		])
 
         async def on_shutdown(app):
-            for ws in set(app[app_keys['websockets']]):
+            sockets : list[WebSocketResponse] = app[app_keys['websockets']]
+            for ws in set(sockets):
                 await ws.close()
         self._app.on_shutdown.append(on_shutdown)
 
         self._app[app_keys['websockets']] = []
-        self._app[app_keys['on_message_callback']] = self._on_message
 
         self._app.router.add_get('/', index)
         self._app.router.add_get('/protocol', self.protocol)
-        self._app.router.add_get('/websocket', websocket_handler)
+        self._app.router.add_get('/websocket', self.websocket_handler)
         self._app.router.add_get('/getpublickey', self.get_public_key)
 
         self._app.on_shutdown.append(self._on_server_shutdown)
@@ -148,7 +191,8 @@ class WebSocketServer(EngineServer):
             app: The web application shutting down.
         """
 
-        for socket in app.get(app_keys['websockets'], []):
+        sockets: list[WebSocketResponse] = app.get(app_keys['websockets'], [])
+        for socket in sockets:
             await socket.close(code=WSCloseCode.GOING_AWAY,
                                message='Server shutdown')
 
@@ -162,7 +206,7 @@ class WebSocketServer(EngineServer):
         if not self._app:
             return
 
-        sockets=self._app.get(app_keys['websockets'], [])
+        sockets: list[WebSocketResponse] = self._app.get(app_keys['websockets'], [])
         for socket in sockets:
             try:
                 await socket.send_json(data)

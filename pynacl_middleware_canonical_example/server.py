@@ -25,7 +25,8 @@ class EngineServer:
     Attributes:
         status: The current status of the server.
     """
-    listened = Listens()
+    listened : Listens = Listens()
+    data : Listens = Listens()
 
     def __init__(self, host: str, port: str) -> None:
         """Initialize the server.
@@ -106,13 +107,4 @@ class EngineServer:
         raise NotImplementedError()
 
     def register_message_callback(self, callback) -> None:
-        self._callbacks.append(callback)
-
-    def _on_message(self, args, *kwargs):
-        """Stuff stuff. Subclasses should call this function on message received.
-
-        Args:
-            data: The received data.
-        """
-        for callback in self._callbacks:
-            callback(args, *kwargs)
+        self.data.add_listener(callback)
