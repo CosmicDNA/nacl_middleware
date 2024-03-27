@@ -67,7 +67,7 @@ class EngineServer:
         if not self._loop:
             return
 
-        asyncio.run_coroutine_threadsafe(self._broadcast_message(data),
+        return asyncio.run_coroutine_threadsafe(self._broadcast_message(data),
                                          self._loop)
 
     def queue_stop(self) -> None:

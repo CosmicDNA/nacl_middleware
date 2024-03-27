@@ -15,13 +15,13 @@ async def status_change_listener(status) -> None:
         await client.connectToWebsocket({'messageTwo': 'testTwo'})
         await client.sendWebSocketMessage(client.getEncryptionParams({'name': 'Georgia'}))
         await client.disconnectWebsocket()
+        esm.stop_listening()
         esm.stop()
 
 async def server_loop_handler() -> None:
     esm.add_listener(status_change_listener)
     esm.start()
     esm.join()
-    esm.stop_listening()
     log.info('Joining main thread...')
 
 def test_middleware() -> None:
