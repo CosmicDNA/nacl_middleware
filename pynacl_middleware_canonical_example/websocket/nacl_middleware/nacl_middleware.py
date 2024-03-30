@@ -1,5 +1,4 @@
 from typing import Tuple
-from json import loads
 from operator import itemgetter
 from aiohttp import WSCloseCode
 from nacl.public import PrivateKey, Box
@@ -14,11 +13,6 @@ from aiohttp.typedefs import (
 from logging import getLogger
 from .utils import is_exclude
 from .nacl_utils import MailBox
-
-def custom_loads(obj) -> any:
-    if isinstance(obj, str):
-        obj = f'"{obj}"'
-    return loads(obj)
 
 mailBoxes = {}
 

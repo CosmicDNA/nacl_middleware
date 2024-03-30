@@ -168,7 +168,7 @@ class WebSocketServer(EngineServer):
         async def run_async() -> None:
             self._runner = runner = AppRunner(self._app)
             await runner.setup()
-            self._site = site = TCPSite(runner, host=self._host, port=self._port)
+            self._site = site = TCPSite(runner, host=self._host, port=self._port, ssl_context=self._ssl)
             await site.start()
             self.listened.status = ServerStatus.Running
             await self._stop_event.wait()
