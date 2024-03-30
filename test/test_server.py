@@ -9,13 +9,12 @@ esm = EngineServerManager()
 
 async def status_change_listener(status) -> None:
     if status == ServerStatus.Running:
-        client = Client(server_config.host, server_config.port, server_config.private_key.public_key)
+        client = Client(server_config.host, server_config.port, server_config.public_key)
         data = await client.sendMessage({'messageOne': 'testOne'})
         assert data == 'ws://'
         await client.connectToWebsocket({'messageTwo': 'testTwo'})
-        await client.sendWebSocketMessage(client.getEncryptionParams({'name': 'Georgia'}))
+        await client.sendWebSocketMessage({'name': 'Georgia'})
         await client.disconnectWebsocket()
-        esm.stop_listening()
         esm.stop()
 
 async def server_loop_handler() -> None:

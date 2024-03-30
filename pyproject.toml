@@ -23,8 +23,7 @@ keywords = ["pynacle", "middleware", "aiohttp"]
 dependencies = [
     "aiohttp",
     "aiohttp_middlewares",
-    "pynacl",
-    "sorcery"
+    "pynacl"
 ]
 
 [project.optional-dependencies]

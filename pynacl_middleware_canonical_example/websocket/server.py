@@ -1,6 +1,6 @@
 """WebSocket server definition."""
 
-from asyncio import Event, set_event_loop, new_event_loop
+from asyncio import Event, set_event_loop, new_event_loop, create_task
 
 from aiohttp.web import Request, Response, WebSocketResponse, Application, AppRunner, TCPSite, json_response
 from aiohttp import WSCloseCode, WSMsgType
@@ -13,6 +13,8 @@ from pynacl_middleware_canonical_example.websocket.views import index
 from pynacl_middleware_canonical_example.logger import log
 from nacl.public import PrivateKey
 from pynacl_middleware_canonical_example.websocket.app_keys import app_keys
+from operator import itemgetter
+from .nacl_middleware.nacl_utils import MailBox
 
 from pynacl_middleware_canonical_example.errors import (
     ERROR_SERVER_RUNNING,
@@ -76,7 +78,9 @@ class WebSocketServer(EngineServer):
         else:
             protocol = "ws://"
 
-        return json_response(protocol)
+        mail_box: MailBox = itemgetter('mail_box')(request)
+
+        return json_response(mail_box.box(protocol))
 
     async def websocket_handler(self, request: Request) -> WebSocketResponse:
         """The main WebSocket handler.
@@ -88,6 +92,8 @@ class WebSocketServer(EngineServer):
         socket = WebSocketResponse()
         await socket.prepare(request)
         sockets: list[WebSocketResponse] = request.app[app_keys['websockets']]
+        mail_box: MailBox = itemgetter('mail_box')(request)
+        socket['mail_box'] = mail_box
         sockets.append(socket)
         log.info('WebSocket connection ready')
 
@@ -99,7 +105,7 @@ class WebSocketServer(EngineServer):
                         continue
 
                     try:  # NOTE is this good API? What if message is not JSON/dict?
-                        self.data.status = {**loads(message.data), 'decryptor': request['decryptor']}
+                        self.data.status = {**loads(message.data), 'mail_box': mail_box}
                     except decoder.JSONDecodeError:
                         log.info(f'Receive unknown data: {message.data}')
                         continue
@@ -207,9 +213,17 @@ class WebSocketServer(EngineServer):
             return
 
         sockets: list[WebSocketResponse] = self._app.get(app_keys['websockets'], [])
-        for socket in sockets:
+
+        async def task(socket: WebSocketResponse):
             try:
-                await socket.send_json(data)
-            except:
-                print(f'Failed to update websocket {socket} {id(socket)} {socket.closed} (this should not happen)', flush=True)
-        sockets[:]=[socket for socket in sockets if not socket.closed] #this should not change sockets normally
+                mail_box: MailBox = itemgetter('mail_box')(socket)
+                await socket.send_str(mail_box.box(data))
+            except Exception as e:
+                print(f'Failed to update websocket {socket} {id(socket)} {socket.closed}: {e}', flush=True)
+
+        # Create background tasks for each socket
+        for socket in sockets:
+            create_task(task(socket))
+
+        # Filter out closed sockets
+        sockets[:] = [socket for socket in sockets if not socket.closed]

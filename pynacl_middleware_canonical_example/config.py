@@ -54,13 +54,14 @@ class ServerConfig():
             log.debug(f'Private key {decoded_private_key} decoded!')
             data['private_key'] = decoded_private_key
             log.debug('Decoding public key...')
-            decoded_public_key = nacl_helper.decodedPublicKey()
-            log.debug(f'Public key {decoded_public_key} decoded!')
-            data['public_key'] = decoded_public_key
+            public_key = nacl_helper.decodedPublicKey()
+            log.debug(f'Public key {public_key} decoded!')
+            data['public_key'] = public_key
             log.debug(f'Resulting data is: {data}')
         else:
             log.debug('Loading private and public keys...')
             private_key = PrivateKey(data['private_key'], encoder)
+            public_key = data['public_key']
 
         # Set host and port
         data['host'] = data.get('host', DEFAULT_HOST)
@@ -87,3 +88,4 @@ class ServerConfig():
         self.remotes = [compile(remote['pattern']) if 'pattern' in remote else remote for remote in data['remotes']]
         self.ssl = data.get('ssl', {})
         self.private_key = private_key
+        self.public_key = public_key

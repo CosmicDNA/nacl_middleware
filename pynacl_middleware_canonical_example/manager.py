@@ -2,7 +2,7 @@
 
 import os
 from operator import itemgetter
-from sorcery import dict_of
+from .websocket.nacl_middleware.nacl_utils import MailBox
 
 from pynacl_middleware_canonical_example.errors import (
     ERROR_SERVER_RUNNING,
@@ -53,6 +53,7 @@ class EngineServerManager():
         if self.get_server_status() != ServerStatus.Running:
             raise AssertionError(ERROR_NO_SERVER)
 
+        self.stop_listening()
         self._server.queue_stop()
 
     def get_server_status(self) -> ServerStatus:
@@ -72,10 +73,9 @@ class EngineServerManager():
 
     def stop_listening(self) -> None:
         self._server.listened.stop_listening()
-        # breakpoint() # This breakpoint disables the following warning: sys:1: RuntimeWarning: coroutine 'status_change_listener' was never awaited
-        pass
 
     async def _on_message(self, data: dict) -> None:
-        publicKey, encryptedMessage, decryptor = itemgetter('publicKey', 'encryptedMessage', 'decryptor')(data)
-        decrypted = decryptor(dict_of(publicKey, encryptedMessage))
+        mail_box : MailBox
+        encryptedMessage, mail_box = itemgetter('encryptedMessage', 'mail_box')(data)
+        decrypted = mail_box.unbox(encryptedMessage)
         log.debug(f'Received encrypted message {decrypted}')

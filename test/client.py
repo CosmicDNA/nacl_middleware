@@ -1,9 +1,9 @@
 from aiohttp import ClientSession
 from aiohttp.typedefs import LooseHeaders
-from nacl.public import PrivateKey, PublicKey, Box
-from nacl.encoding import HexEncoder, Base64Encoder
+from nacl.public import PrivateKey
+from nacl.encoding import HexEncoder
 from multidict import MultiMapping
-from json import dumps
+from pynacl_middleware_canonical_example.websocket.nacl_middleware.nacl_utils import MailBox
 
 
 async def fetch(session: ClientSession, url, params=None) -> any:
@@ -11,30 +11,37 @@ async def fetch(session: ClientSession, url, params=None) -> any:
         return await response.json()
 
 class Client:
-    def __init__(self, host: str, port: str, server_public_key: PublicKey) -> None:
+    private_key: PrivateKey
+    session: ClientSession
+    mail_box : MailBox
+    def __init__(self, host: str, port: str, server_hex_public_key: str) -> None:
         self.private_key = PrivateKey.generate()
-        self.public_key = self.private_key.public_key
+        self.hex_public_key = self.private_key.public_key.encode(encoder=HexEncoder).decode()
         self.host = host
         self.port = port
         self.session = ClientSession()
-        self.box = Box(self.private_key, server_public_key)
+        self.mail_box = MailBox(self.private_key, server_hex_public_key)
 
-    def encrypt(self, message) -> str:
-        return self.box.encrypt(dumps(message).encode(), encoder=Base64Encoder).decode()
-
-    def getEncryptionParams(self, message) -> MultiMapping[str]:
+    def _getEncryptionParams(self, message) -> MultiMapping[str]:
         return {
-            'publicKey': self.public_key.encode(encoder=HexEncoder).decode(),
+            'publicKey': self.hex_public_key,
             'encryptedMessage': self.encrypt(message)
         }
+
+    def encrypt(self, message) -> str:
+        return self.mail_box.box(message)
+
+    def decrypt(self, encrypted_message) -> any:
+        return self.mail_box.unbox(encrypted_message)
 
     async def sendMessage(self, message) -> any:
         url = f'http://{self.host}:{self.port}/protocol'
 
-        return await fetch(self.session, url, params=self.getEncryptionParams(message))
+        encrypted_res = await fetch(self.session, url, params=self._getEncryptionParams(message))
+        return self.decrypt(encrypted_res)
 
     async def sendWebSocketMessage(self, message) -> None:
-        await self.socket.send_str(dumps(message))
+        await self.socket.send_json(self._getEncryptionParams(message))
 
     async def connectToWebsocket(self, message) -> None:
         url = f'ws://{self.host}:{self.port}/websocket'
@@ -43,7 +50,7 @@ class Client:
         headers: LooseHeaders = {
             'Origin': origin
         }
-        self.socket = await self.session.ws_connect(url, params=self.getEncryptionParams(message), headers=headers)
+        self.socket = await self.session.ws_connect(url, params=self._getEncryptionParams(message), headers=headers)
 
     async def disconnectWebsocket(self) -> None:
         await self.session.close()
