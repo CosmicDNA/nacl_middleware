@@ -1,8 +1,6 @@
 """The middleman between Plover and the server."""
 
 import os
-from operator import itemgetter
-from .websocket.nacl_middleware.nacl_utils import MailBox
 
 from pynacl_middleware_canonical_example.errors import (
     ERROR_SERVER_RUNNING,
@@ -75,7 +73,4 @@ class EngineServerManager():
         self._server.listened.stop_listening()
 
     async def _on_message(self, data: dict) -> None:
-        mail_box : MailBox
-        encryptedMessage, mail_box = itemgetter('encryptedMessage', 'mail_box')(data)
-        decrypted = mail_box.unbox(encryptedMessage)
-        log.debug(f'Received encrypted message {decrypted}')
+        log.debug(f'Received message {data}')

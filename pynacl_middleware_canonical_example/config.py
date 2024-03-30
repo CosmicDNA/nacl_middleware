@@ -86,6 +86,6 @@ class ServerConfig():
         self.host = data['host']
         self.port = data['port']
         self.remotes = [compile(remote['pattern']) if 'pattern' in remote else remote for remote in data['remotes']]
-        self.ssl = data.get('ssl', {})
+        self.ssl = data.get('ssl', None)
         self.private_key = private_key
         self.public_key = public_key

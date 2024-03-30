@@ -100,14 +100,17 @@ class WebSocketServer(EngineServer):
         try:
             async for message in socket:
                 if message.type == WSMsgType.TEXT:
-                    if message.data == 'close':
-                        await socket.close()
+                    try:
+                        log.debug('Decrypting message...')
+                        decrypted: dict = mail_box.unbox(message.data)
+                        log.debug(f'Received encrypted message {decrypted}')
+                    except Exception:
+                        log.info(f'Failed decrypting data: {message.data}')
                         continue
 
-                    try:  # NOTE is this good API? What if message is not JSON/dict?
-                        self.data.status = {**loads(message.data), 'mail_box': mail_box}
-                    except decoder.JSONDecodeError:
-                        log.info(f'Receive unknown data: {message.data}')
+
+                    if decrypted == 'close':
+                        await socket.close()
                         continue
 
                 elif message.type == WSMsgType.ERROR:

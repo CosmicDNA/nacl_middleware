@@ -41,7 +41,7 @@ class Client:
         return self.decrypt(encrypted_res)
 
     async def sendWebSocketMessage(self, message) -> None:
-        await self.socket.send_json(self._getEncryptionParams(message))
+        await self.socket.send_str(self.encrypt(message))
 
     async def connectToWebsocket(self, message) -> None:
         url = f'ws://{self.host}:{self.port}/websocket'
