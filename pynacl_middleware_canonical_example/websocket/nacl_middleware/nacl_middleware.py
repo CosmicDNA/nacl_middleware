@@ -63,8 +63,7 @@ def nacl_middleware(private_key: PrivateKey,
                     await socket.prepare(request)
                     await socket.close(
                         code=WSCloseCode.PROTOCOL_ERROR,
-                        message=exception.reason,
-                        body=exception.body
+                        message=''.join(format_exception(exception))
                     )
                     return socket
                 elif return_annotation == Response:
