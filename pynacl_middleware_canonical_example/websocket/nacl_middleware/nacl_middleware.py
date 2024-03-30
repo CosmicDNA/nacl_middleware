@@ -1,7 +1,7 @@
 from typing import Tuple
 from operator import itemgetter
 from aiohttp import WSCloseCode
-from nacl.public import PrivateKey, Box
+from nacl.public import PrivateKey
 from inspect import signature
 from aiohttp.web import StreamResponse, Response, WebSocketResponse, Request, HTTPUnauthorized, middleware
 from traceback import format_exception
@@ -22,7 +22,7 @@ def nacl_middleware(private_key: PrivateKey,
                     log = getLogger()
                    ) -> Middleware:
 
-    def nacl_decryptor(public_key, encrypted_message) -> Tuple[any, Box]:
+    def nacl_decryptor(public_key, encrypted_message) -> Tuple[any, MailBox]:
         if public_key in mailBoxes:
             my_mail_box = mailBoxes[public_key]
         else:
