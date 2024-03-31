@@ -5,7 +5,6 @@ from asyncio import Event, set_event_loop, new_event_loop, create_task
 from aiohttp.web import Request, Response, WebSocketResponse, Application, AppRunner, TCPSite, json_response
 from aiohttp import WSCloseCode, WSMsgType
 from asyncio import CancelledError
-from json import loads, decoder
 from aiohttp_middlewares import cors_middleware
 from aiohttp_middlewares.cors import DEFAULT_ALLOW_HEADERS, DEFAULT_ALLOW_METHODS
 from pynacl_middleware_canonical_example.websocket.nacl_middleware import nacl_middleware, Nacl
