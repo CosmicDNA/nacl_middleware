@@ -1,13 +1,10 @@
-from aiohttp import ClientSession, TCPConnector, ClientError, log
+from aiohttp import ClientSession, TCPConnector, ClientError
 from aiohttp.typedefs import LooseHeaders
 from nacl.public import PrivateKey
 from nacl.encoding import HexEncoder
 from multidict import MultiMapping
 from pynacl_middleware_canonical_example.websocket.nacl_middleware.nacl_utils import MailBox
 from ssl import create_default_context, SSLContext, Purpose
-from logging import DEBUG
-
-log.client_logger.setLevel(DEBUG)
 
 class Client:
     private_key: PrivateKey
@@ -15,10 +12,10 @@ class Client:
     mail_box : MailBox
     ssl_context: SSLContext
 
-    def __init__(self, host: str, port: str, server_hex_public_key: str) -> None:
+    def __init__(self, host: str, port: str, server_hex_public_key: str, isTLS: bool) -> None:
         self.private_key = PrivateKey.generate()
         self.hex_public_key = self.private_key.public_key.encode(encoder=HexEncoder).decode()
-        self.isTLS = True
+        self.isTLS = isTLS
         self.host = host
         self.port = port
         if self.isTLS:
@@ -27,7 +24,11 @@ class Client:
         else:
             self.ssl_context = None
         connector = TCPConnector(ssl=self.ssl_context)
-        self.session = ClientSession(connector = connector)
+        origin = f'http{self.protocol()}://{self.host}'
+        self.headers: LooseHeaders = {
+            'Origin': origin
+        }
+        self.session = ClientSession(connector = connector, headers=self.headers)
         self.mail_box = MailBox(self.private_key, server_hex_public_key)
 
     def _getEncryptionParams(self, message) -> MultiMapping[str]:
@@ -66,14 +67,10 @@ class Client:
     async def connectToWebsocket(self, message) -> None:
         url = f'ws{self.protocol()}://{self.host}:{self.port}/websocket'
 
-        origin = f'http{self.protocol()}://{self.host}'
-        headers: LooseHeaders = {
-            'Origin': origin
-        }
         self.socket = await self.session.ws_connect(
             url,
             params=self._getEncryptionParams(message),
-            headers=headers,
+            headers=self.headers,
             ssl=self.ssl_context
         )
 

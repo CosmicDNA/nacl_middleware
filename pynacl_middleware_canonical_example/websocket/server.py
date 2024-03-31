@@ -56,7 +56,7 @@ class WebSocketServer(EngineServer):
         self._private_key = private_key
         self._remotes = remotes
         if ssl:
-            self._ssl_context = create_default_context(Purpose.CLIENT_AUTH, cafile='selfsigned.crt')
+            self._ssl_context = create_default_context(Purpose.CLIENT_AUTH, cafile=ssl['cert_path'])
             self._ssl_context.load_cert_chain(ssl['cert_path'], ssl['key_path'])
         else:
             self._ssl_context = None

@@ -9,9 +9,9 @@ esm = EngineServerManager()
 
 async def status_change_listener(status) -> None:
     if status == ServerStatus.Running:
-        client = Client(server_config.host, server_config.port, server_config.public_key)
+        client = Client(server_config.host, server_config.port, server_config.public_key, True if server_config.ssl else False)
         data = await client.sendMessage({'messageOne': 'testOne'})
-        assert data == 'ws://'
+        assert data == f'ws{client.protocol()}://'
         await client.connectToWebsocket({'messageTwo': 'testTwo'})
         await client.sendWebSocketMessage({'name': 'Georgia'})
         await client.disconnectWebsocket()
