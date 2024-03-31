@@ -6,3 +6,8 @@ debug.log
 *.egg-info
 build/
 .pytest_cache
+*.crt
+*.key
+*.pem
+*.csr
+*.srl

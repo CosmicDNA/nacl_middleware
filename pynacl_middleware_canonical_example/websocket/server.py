@@ -15,6 +15,7 @@ from nacl.public import PrivateKey
 from pynacl_middleware_canonical_example.websocket.app_keys import app_keys
 from operator import itemgetter
 from .nacl_middleware.nacl_utils import MailBox
+from ssl import create_default_context, Purpose, SSLContext
 
 from pynacl_middleware_canonical_example.errors import (
     ERROR_SERVER_RUNNING,
@@ -40,8 +41,9 @@ class WebSocketServer(EngineServer):
     _private_key: PrivateKey
     _runner: AppRunner
     _site: TCPSite
+    ssl_context: SSLContext
 
-    def __init__(self, host: str, port: str, ssl: dict, remotes: list[object], private_key: PrivateKey) -> None:
+    def __init__(self, host: str, port: str, ssl: SSLConfig, remotes: list[object], private_key: PrivateKey) -> None:
         """Initialize the server.
 
         Args:
@@ -51,9 +53,13 @@ class WebSocketServer(EngineServer):
 
         super().__init__(host, port)
         self._app = None
-        self._ssl = ssl
         self._private_key = private_key
         self._remotes = remotes
+        if ssl:
+            self._ssl_context = create_default_context(Purpose.CLIENT_AUTH, cafile='selfsigned.crt')
+            self._ssl_context.load_cert_chain(ssl['cert_path'], ssl['key_path'])
+        else:
+            self._ssl_context = None
 
     async def get_public_key(self, request: Request) -> Response:
         """Route to get the public key of the web server.
@@ -73,7 +79,7 @@ class WebSocketServer(EngineServer):
         Args:
             request: The request from the client.
         """
-        if self._ssl:
+        if self._ssl_context:
             protocol = "wss://"
         else:
             protocol = "ws://"
@@ -171,7 +177,7 @@ class WebSocketServer(EngineServer):
         async def run_async() -> None:
             self._runner = runner = AppRunner(self._app)
             await runner.setup()
-            self._site = site = TCPSite(runner, host=self._host, port=self._port, ssl_context=self._ssl)
+            self._site = site = TCPSite(runner, host=self._host, port=self._port, ssl_context=self._ssl_context)
             await site.start()
             self.listened.status = ServerStatus.Running
             await self._stop_event.wait()
