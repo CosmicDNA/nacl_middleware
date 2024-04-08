@@ -5,6 +5,7 @@ config.json
 debug.log
 *.egg-info
 build/
+dist/
 .pytest_cache
 *.crt
 *.key

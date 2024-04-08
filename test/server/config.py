@@ -5,8 +5,8 @@ from json import load, dump
 from copy import deepcopy
 from nacl.public import PrivateKey
 from nacl.encoding import HexEncoder
-from pynacl_middleware_canonical_example.websocket.nacl_middleware import Nacl
-from pynacl_middleware_canonical_example.logger import log
+from nacl_middleware import Nacl
+from .logger import log
 
 DEFAULT_HOST: str = 'localhost'
 DEFAULT_PORT: int = 8086

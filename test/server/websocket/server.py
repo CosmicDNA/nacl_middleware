@@ -7,20 +7,19 @@ from aiohttp import WSCloseCode, WSMsgType
 from asyncio import CancelledError
 from aiohttp_middlewares import cors_middleware
 from aiohttp_middlewares.cors import DEFAULT_ALLOW_HEADERS, DEFAULT_ALLOW_METHODS
-from pynacl_middleware_canonical_example.websocket.nacl_middleware import nacl_middleware, Nacl
-from pynacl_middleware_canonical_example.websocket.views import index
-from pynacl_middleware_canonical_example.logger import log
+from nacl_middleware import nacl_middleware, Nacl, MailBox
+from .views import index
+from ..logger import log
 from nacl.public import PrivateKey
-from pynacl_middleware_canonical_example.websocket.app_keys import app_keys
+from .app_keys import app_keys
 from operator import itemgetter
-from .nacl_middleware.nacl_utils import MailBox
 from ssl import create_default_context, Purpose, SSLContext
 
-from pynacl_middleware_canonical_example.errors import (
+from ..errors import (
     ERROR_SERVER_RUNNING,
     ERROR_NO_SERVER
 )
-from pynacl_middleware_canonical_example.server import (
+from ..server import (
     EngineServer,
     ServerStatus
 )

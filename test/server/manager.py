@@ -2,17 +2,17 @@
 
 import os
 
-from pynacl_middleware_canonical_example.errors import (
+from .errors import (
     ERROR_SERVER_RUNNING,
     ERROR_NO_SERVER
 )
-from pynacl_middleware_canonical_example.server import (
+from .server import (
     EngineServer,
     ServerStatus
 )
-from pynacl_middleware_canonical_example.websocket.server import WebSocketServer
-from pynacl_middleware_canonical_example.config import ServerConfig
-from pynacl_middleware_canonical_example.logger import log
+from .websocket.server import WebSocketServer
+from .config import ServerConfig
+from .logger import log
 
 SERVER_CONFIG_FILE = 'config.json'
 CONFIG_DIR = './'

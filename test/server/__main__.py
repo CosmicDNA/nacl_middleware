@@ -1,4 +1,4 @@
-from pynacl_middleware_canonical_example.manager import EngineServerManager
+from manager import EngineServerManager
 from asyncio import get_event_loop
 
 async def main() -> None:

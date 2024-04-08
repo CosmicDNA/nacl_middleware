@@ -3,13 +3,13 @@
 To start, clone the project with:
 
 ```shell
-git clone https://github.com/CosmicDNA/pynacl-middleware-canonical-example
+git clone https://github.com/CosmicDNA/nacl_middleware
 ```
 
 Then enter the cloned folder and create a new virtualenv:
 
 ```shell
-cd pynacl-middleware-canonical-example
+cd nacl-middleware
 python3 -m  venv .venv
 ```
 

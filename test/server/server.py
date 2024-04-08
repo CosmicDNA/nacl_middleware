@@ -4,7 +4,7 @@ from enum import Enum, auto
 from threading import Thread
 import asyncio
 from asyncio import Future
-from pynacl_middleware_canonical_example.listens import Listens
+from .listens import Listens
 
 
 class ServerStatus(Enum):

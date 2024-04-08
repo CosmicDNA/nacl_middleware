@@ -1,7 +1,5 @@
 from asyncio import get_event_loop
-from pynacl_middleware_canonical_example.manager import EngineServerManager, ServerStatus
-from pynacl_middleware_canonical_example.config import ServerConfig
-from pynacl_middleware_canonical_example.logger import log
+from .server import EngineServerManager, ServerStatus, ServerConfig, log
 from .client import Client
 
 server_config = ServerConfig('./config.json')

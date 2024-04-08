@@ -1,6 +1,6 @@
 from asyncio import gather, create_task, Task
 from asyncio.futures import Future
-from pynacl_middleware_canonical_example.logger import log
+from .logger import log
 
 # Listens interface
 class Listens:

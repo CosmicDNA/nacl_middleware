@@ -3,7 +3,7 @@ from aiohttp.typedefs import LooseHeaders
 from nacl.public import PrivateKey
 from nacl.encoding import HexEncoder
 from multidict import MultiMapping
-from pynacl_middleware_canonical_example.websocket.nacl_middleware.nacl_utils import MailBox
+from nacl_middleware import MailBox
 from ssl import create_default_context, SSLContext, Purpose
 
 class Client:
