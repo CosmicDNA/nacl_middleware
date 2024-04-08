@@ -18,6 +18,9 @@ classifiers = [
     "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
 ]
 keywords = ["pynacle", "middleware", "aiohttp"]
 dependencies = [
@@ -25,11 +28,21 @@ dependencies = [
     "aiohttp_middlewares",
     "pynacl"
 ]
+readme = "README.md"
+
 
 [project.optional-dependencies]
 test = ["pytest"]
 
-build = [
+dev = [
     "build",
-    "bumpversion"
+    "black",
+    "flake8",
+    "isort",
+    "pip-tools",
+    "bumpversion",
+    "twine"
 ]
+
+[tool.black]
+line-length = 89

@@ -2,6 +2,7 @@
 
 from aiohttp.web import Request, Response
 
+
 async def index(request: Request) -> Response:
     """Index endpoint for the server. Not really needed.
 
@@ -9,4 +10,4 @@ async def index(request: Request) -> Response:
         request: The request from the client.
     """
 
-    return Response(text='index')
+    return Response(text="index")

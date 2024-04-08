@@ -1,28 +1,32 @@
-from nacl.public import PrivateKey, PublicKey, Box
-from nacl.encoding import HexEncoder, Base64Encoder
+from json import dumps, loads
 from typing import Union
-from json import loads, dumps
+
+from nacl.encoding import Base64Encoder, HexEncoder
+from nacl.public import Box, PrivateKey, PublicKey
+
 
 class Nacl:
-	private_key: PrivateKey
+    private_key: PrivateKey
 
-	def __init__(self, private_key: PrivateKey, encoder = HexEncoder) -> None:
-		self.private_key = private_key
-		self.encoder = encoder
+    def __init__(self, private_key: PrivateKey, encoder=HexEncoder) -> None:
+        self.private_key = private_key
+        self.encoder = encoder
 
-	def _decode(self, parameter: Union[PrivateKey, PublicKey]) -> str:
-		return parameter.encode(encoder=self.encoder).decode()
+    def _decode(self, parameter: Union[PrivateKey, PublicKey]) -> str:
+        return parameter.encode(encoder=self.encoder).decode()
 
-	def decodedPrivateKey(self) -> str:
-		return self._decode(self.private_key)
+    def decodedPrivateKey(self) -> str:
+        return self._decode(self.private_key)
 
-	def decodedPublicKey(self) -> str:
-		return self._decode(self.private_key.public_key)
+    def decodedPublicKey(self) -> str:
+        return self._decode(self.private_key.public_key)
+
 
 def custom_loads(obj) -> any:
     if isinstance(obj, str):
         obj = f'"{obj}"'
     return loads(obj)
+
 
 class MailBox:
     _private_key: PrivateKey

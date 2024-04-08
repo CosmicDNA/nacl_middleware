@@ -2,34 +2,38 @@
 
 import os
 
-from .errors import (
-    ERROR_SERVER_RUNNING,
-    ERROR_NO_SERVER
-)
-from .server import (
-    EngineServer,
-    ServerStatus
-)
-from .websocket.server import WebSocketServer
-from .config import ServerConfig
-from .logger import log
+from tests.server.config import ServerConfig
+from tests.server.errors import ERROR_NO_SERVER, ERROR_SERVER_RUNNING
+from tests.server.logger import log
+from tests.server.server import EngineServer, ServerStatus
+from tests.server.websocket.server import WebSocketServer
 
-SERVER_CONFIG_FILE = 'config.json'
-CONFIG_DIR = './'
+SERVER_CONFIG_FILE = "config.json"
+CONFIG_DIR = "./"
 
-class EngineServerManager():
+
+class EngineServerManager:
     """Manages a server that exposes the Plover engine."""
 
     _server: EngineServer
+
     def __init__(self) -> None:
         self._server = None
         self._config_path: str = os.path.join(CONFIG_DIR, SERVER_CONFIG_FILE)
         if self.get_server_status() != ServerStatus.Stopped:
             raise AssertionError(ERROR_SERVER_RUNNING)
 
-        self._config = ServerConfig(self._config_path)  # reload the configuration when the server is restarted
+        self._config = ServerConfig(
+            self._config_path
+        )  # reload the configuration when the server is restarted
 
-        self._server = WebSocketServer(self._config.host, self._config.port, self._config.ssl, self._config.remotes, self._config.private_key)
+        self._server = WebSocketServer(
+            self._config.host,
+            self._config.port,
+            self._config.ssl,
+            self._config.remotes,
+            self._config.private_key,
+        )
         self._server.register_message_callback(self._on_message)
 
     def start(self) -> None:
@@ -73,4 +77,4 @@ class EngineServerManager():
         self._server.listened.stop_listening()
 
     async def _on_message(self, data: dict) -> None:
-        log.debug(f'Received message {data}')
+        log.debug(f"Received message {data}")

@@ -1,34 +1,36 @@
 """WebSocket server definition."""
 
-from asyncio import Event, set_event_loop, new_event_loop, create_task
+from asyncio import CancelledError, Event, create_task, new_event_loop, set_event_loop
+from operator import itemgetter
+from ssl import Purpose, SSLContext, create_default_context
+from typing import TypedDict
 
-from aiohttp.web import Request, Response, WebSocketResponse, Application, AppRunner, TCPSite, json_response
 from aiohttp import WSCloseCode, WSMsgType
-from asyncio import CancelledError
+from aiohttp.web import (
+    Application,
+    AppRunner,
+    Request,
+    Response,
+    TCPSite,
+    WebSocketResponse,
+    json_response,
+)
 from aiohttp_middlewares import cors_middleware
 from aiohttp_middlewares.cors import DEFAULT_ALLOW_HEADERS, DEFAULT_ALLOW_METHODS
-from nacl_middleware import nacl_middleware, Nacl, MailBox
-from .views import index
-from ..logger import log
 from nacl.public import PrivateKey
-from .app_keys import app_keys
-from operator import itemgetter
-from ssl import create_default_context, Purpose, SSLContext
 
-from ..errors import (
-    ERROR_SERVER_RUNNING,
-    ERROR_NO_SERVER
-)
-from ..server import (
-    EngineServer,
-    ServerStatus
-)
+from nacl_middleware import MailBox, Nacl, nacl_middleware
+from tests.server.errors import ERROR_NO_SERVER, ERROR_SERVER_RUNNING
+from tests.server.logger import log
+from tests.server.server import EngineServer, ServerStatus
+from tests.server.websocket.app_keys import app_keys
+from tests.server.websocket.views import index
 
-from typing import TypedDict
 
 class SSLConfig(TypedDict):
     cert_path: str
     key_path: str
+
 
 class WebSocketServer(EngineServer):
     """A server based on WebSockets."""
@@ -41,7 +43,14 @@ class WebSocketServer(EngineServer):
     _site: TCPSite
     ssl_context: SSLContext
 
-    def __init__(self, host: str, port: str, ssl: SSLConfig, remotes: list[object], private_key: PrivateKey) -> None:
+    def __init__(
+        self,
+        host: str,
+        port: str,
+        ssl: SSLConfig,
+        remotes: list[object],
+        private_key: PrivateKey,
+    ) -> None:
         """Initialize the server.
 
         Args:
@@ -54,8 +63,10 @@ class WebSocketServer(EngineServer):
         self._private_key = private_key
         self._remotes = remotes
         if ssl:
-            self._ssl_context = create_default_context(Purpose.CLIENT_AUTH, cafile=ssl['cert_path'])
-            self._ssl_context.load_cert_chain(ssl['cert_path'], ssl['key_path'])
+            self._ssl_context = create_default_context(
+                Purpose.CLIENT_AUTH, cafile=ssl["cert_path"]
+            )
+            self._ssl_context.load_cert_chain(ssl["cert_path"], ssl["key_path"])
         else:
             self._ssl_context = None
 
@@ -65,10 +76,10 @@ class WebSocketServer(EngineServer):
         Args:
             request: The request from the client.
         """
-        log.info(f'Request to get the server public key received.')
-        log.info('Decoding public key...')
+        log.info("Request to get the server public key received.")
+        log.info("Decoding public key...")
         decoded_public_key = Nacl(self._private_key).decodedPublicKey()
-        log.info(f'Public key {decoded_public_key} was decoded!')
+        log.info(f"Public key {decoded_public_key} was decoded!")
         return json_response(decoded_public_key)
 
     async def protocol(self, request: Request) -> Response:
@@ -82,7 +93,7 @@ class WebSocketServer(EngineServer):
         else:
             protocol = "ws://"
 
-        mail_box: MailBox = itemgetter('mail_box')(request)
+        mail_box: MailBox = itemgetter("mail_box")(request)
 
         return json_response(mail_box.box(protocol))
 
@@ -92,42 +103,42 @@ class WebSocketServer(EngineServer):
         Args:
             request: The request from the client.
         """
-        log.info('WebSocket connection starting')
+        log.info("WebSocket connection starting")
         socket = WebSocketResponse()
         await socket.prepare(request)
-        sockets: list[WebSocketResponse] = request.app[app_keys['websockets']]
-        mail_box: MailBox = itemgetter('mail_box')(request)
-        socket['mail_box'] = mail_box
+        sockets: list[WebSocketResponse] = request.app[app_keys["websockets"]]
+        mail_box: MailBox = itemgetter("mail_box")(request)
+        socket["mail_box"] = mail_box
         sockets.append(socket)
-        log.info('WebSocket connection ready')
+        log.info("WebSocket connection ready")
 
         try:
             async for message in socket:
                 if message.type == WSMsgType.TEXT:
                     try:
-                        log.debug('Decrypting message...')
+                        log.debug("Decrypting message...")
                         decrypted: dict = mail_box.unbox(message.data)
-                        log.debug(f'Received encrypted message {decrypted}')
+                        log.debug(f"Received encrypted message {decrypted}")
                     except Exception:
-                        log.info(f'Failed decrypting data: {message.data}')
+                        log.info(f"Failed decrypting data: {message.data}")
                         continue
 
-
-                    if decrypted == 'close':
+                    if decrypted == "close":
                         await socket.close()
                         continue
 
                 elif message.type == WSMsgType.ERROR:
-                    log.info('WebSocket connection closed with exception '
-                        f'{socket.exception()}')
+                    log.info(
+                        "WebSocket connection closed with exception "
+                        f"{socket.exception()}"
+                    )
         except CancelledError:  # https://github.com/aio-libs/aiohttp/issues/1768
             pass
         finally:
             await socket.close()
 
-
         sockets.remove(socket)
-        log.info('WebSocket connection closed')
+        log.info("WebSocket connection closed")
         return socket
 
     def _start(self) -> None:
@@ -142,31 +153,32 @@ class WebSocketServer(EngineServer):
         set_event_loop(loop)
         self._loop = loop
 
-        self._app = Application(middlewares=[
-			cors_middleware(
-				origins=self._remotes,
-				allow_methods=DEFAULT_ALLOW_METHODS,
-				allow_headers=DEFAULT_ALLOW_HEADERS
-			),
-			nacl_middleware(
-                self._private_key,
-                exclude_routes=('/getpublickey', ),
-                log=log
-            )
-		])
+        self._app = Application(
+            middlewares=[
+                cors_middleware(
+                    origins=self._remotes,
+                    allow_methods=DEFAULT_ALLOW_METHODS,
+                    allow_headers=DEFAULT_ALLOW_HEADERS,
+                ),
+                nacl_middleware(
+                    self._private_key, exclude_routes=("/getpublickey",), log=log
+                ),
+            ]
+        )
 
         async def on_shutdown(app) -> None:
-            sockets : list[WebSocketResponse] = app[app_keys['websockets']]
+            sockets: list[WebSocketResponse] = app[app_keys["websockets"]]
             for ws in set(sockets):
                 await ws.close()
+
         self._app.on_shutdown.append(on_shutdown)
 
-        self._app[app_keys['websockets']] = []
+        self._app[app_keys["websockets"]] = []
 
-        self._app.router.add_get('/', index)
-        self._app.router.add_get('/protocol', self.protocol)
-        self._app.router.add_get('/websocket', self.websocket_handler)
-        self._app.router.add_get('/getpublickey', self.get_public_key)
+        self._app.router.add_get("/", index)
+        self._app.router.add_get("/protocol", self.protocol)
+        self._app.router.add_get("/websocket", self.websocket_handler)
+        self._app.router.add_get("/getpublickey", self.get_public_key)
 
         self._app.on_shutdown.append(self._on_server_shutdown)
 
@@ -175,7 +187,9 @@ class WebSocketServer(EngineServer):
         async def run_async() -> None:
             self._runner = runner = AppRunner(self._app)
             await runner.setup()
-            self._site = site = TCPSite(runner, host=self._host, port=self._port, ssl_context=self._ssl_context)
+            self._site = site = TCPSite(
+                runner, host=self._host, port=self._port, ssl_context=self._ssl_context
+            )
             await site.start()
             self.listened.status = ServerStatus.Running
             await self._stop_event.wait()
@@ -204,10 +218,9 @@ class WebSocketServer(EngineServer):
             app: The web application shutting down.
         """
 
-        sockets: list[WebSocketResponse] = app.get(app_keys['websockets'], [])
+        sockets: list[WebSocketResponse] = app.get(app_keys["websockets"], [])
         for socket in sockets:
-            await socket.close(code=WSCloseCode.GOING_AWAY,
-                               message='Server shutdown')
+            await socket.close(code=WSCloseCode.GOING_AWAY, message="Server shutdown")
 
     async def _broadcast_message(self, data: dict) -> None:
         """Broadcasts a message to connected clients.
@@ -219,14 +232,17 @@ class WebSocketServer(EngineServer):
         if not self._app:
             return
 
-        sockets: list[WebSocketResponse] = self._app.get(app_keys['websockets'], [])
+        sockets: list[WebSocketResponse] = self._app.get(app_keys["websockets"], [])
 
         async def task(socket: WebSocketResponse):
             try:
-                mail_box: MailBox = itemgetter('mail_box')(socket)
+                mail_box: MailBox = itemgetter("mail_box")(socket)
                 await socket.send_str(mail_box.box(data))
             except Exception as e:
-                print(f'Failed to update websocket {socket} {id(socket)} {socket.closed}: {e}', flush=True)
+                print(
+                    f"Failed to update websocket {socket} {id(socket)} {socket.closed}: {e}",
+                    flush=True,
+                )
 
         # Create background tasks for each socket
         for socket in sockets:

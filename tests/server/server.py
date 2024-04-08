@@ -1,10 +1,11 @@
 """Core engine server definitions."""
 
-from enum import Enum, auto
-from threading import Thread
 import asyncio
 from asyncio import Future
-from .listens import Listens
+from enum import Enum, auto
+from threading import Thread
+
+from tests.server.listens import Listens
 
 
 class ServerStatus(Enum):
@@ -25,8 +26,9 @@ class EngineServer:
     Attributes:
         status: The current status of the server.
     """
-    listened : Listens = Listens()
-    data : Listens = Listens()
+
+    listened: Listens = Listens()
+    data: Listens = Listens()
 
     def __init__(self, host: str, port: str) -> None:
         """Initialize the server.
@@ -35,7 +37,7 @@ class EngineServer:
             host: The host address for the server to run on.
             port: The port for the server to run on.
         """
-        self._thread = Thread(target=self._start, name='ServerThread')
+        self._thread = Thread(target=self._start, name="ServerThread")
         # it's not recommended to subclass Thread because some of its methods
         # might be accidentally overloaded, for example _stop.
         # Documented in Python documentation: https://docs.python.org/3/library/threading.html#thread-objects
@@ -67,8 +69,9 @@ class EngineServer:
         if not self._loop:
             return
 
-        return asyncio.run_coroutine_threadsafe(self._broadcast_message(data),
-                                         self._loop)
+        return asyncio.run_coroutine_threadsafe(
+            self._broadcast_message(data), self._loop
+        )
 
     def queue_stop(self) -> None:
         """Queues the server to stop.
