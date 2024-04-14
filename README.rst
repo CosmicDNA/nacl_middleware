@@ -103,8 +103,8 @@ Example Client Code
         print(public_key_hex)
 
         app = Application(middlewares=[
-            nacl_middleware(private_key)
-        ], exclude_routes=['/get_public_key'])
+            nacl_middleware(private_key, exclude_routes=['/get_public_key'])
+        ])
 
         async def thanks_handler(request):
             decrypted_message = request['decrypted_message']
