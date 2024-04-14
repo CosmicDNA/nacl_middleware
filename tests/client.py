@@ -66,21 +66,72 @@ class Client:
         self.mail_box = MailBox(self.private_key, server_hex_public_key)
 
     def _getEncryptionParams(self, message) -> MultiMapping[str]:
+        """
+        Returns the encryption parameters for the given message.
+
+        Args:
+            message: The message to be encrypted.
+
+        Returns:
+            A dictionary containing the encryption parameters:
+            - "publicKey": The hexadecimal representation of the public key.
+            - "encryptedMessage": The encrypted message.
+
+        """
         return {
             "publicKey": self.hex_public_key,
             "encryptedMessage": self.encrypt(message),
         }
 
     def protocol(self) -> str:
+        """
+        Returns the protocol used by the client.
+
+        If the client is using TLS, the protocol is "s".
+        If the client is not using TLS, the protocol is an empty string.
+
+        Returns:
+            str: The protocol used by the client.
+        """
         return "s" if self.isTLS else ""
 
     def encrypt(self, message) -> str:
+        """
+        Encrypts the given message using the mail_box's box method.
+
+        Args:
+            message (str): The message to be encrypted.
+
+        Returns:
+            str: The encrypted message.
+        """
         return self.mail_box.box(message)
 
     def decrypt(self, encrypted_message) -> any:
+        """
+        Decrypts an encrypted message using the mail_box's unbox method.
+
+        Args:
+            encrypted_message: The encrypted message to be decrypted.
+
+        Returns:
+            The decrypted message.
+
+        """
         return self.mail_box.unbox(encrypted_message)
 
     async def fetch(self, url, params=None) -> any:
+        """
+        Fetches data from the specified URL.
+
+        Args:
+            url (str): The URL to fetch data from.
+            params (dict, optional): The query parameters to include in the request. Defaults to None.
+
+        Returns:
+            any: The JSON response from the server, or None if an error occurred.
+
+        """
         try:
             async with self.session.get(url, params=params) as response:
                 return await response.json()
@@ -90,15 +141,45 @@ class Client:
             return None
 
     async def sendMessage(self, message) -> any:
+        """
+        Sends a message to the server and returns the decrypted response.
+
+        Args:
+            message: The message to be sent to the server.
+
+        Returns:
+            The decrypted response from the server.
+
+        Raises:
+            Any exceptions raised during the execution of the method.
+        """
         url = f"http{self.protocol()}://{self.host}:{self.port}/protocol"
 
         encrypted_res = await self.fetch(url, params=self._getEncryptionParams(message))
         return self.decrypt(encrypted_res)
 
     async def sendWebSocketMessage(self, message) -> None:
+        """
+        Sends a WebSocket message after encrypting it.
+
+        Args:
+            message: The message to be sent.
+
+        Returns:
+            None
+        """
         await self.socket.send_str(self.encrypt(message))
 
     async def connectToWebsocket(self, message) -> None:
+        """
+        Connects to the websocket server.
+
+        Args:
+            message: The message to be sent to the server.
+
+        Returns:
+            None
+        """
         url = f"ws{self.protocol()}://{self.host}:{self.port}/websocket"
 
         self.socket = await self.session.ws_connect(
@@ -109,4 +190,9 @@ class Client:
         )
 
     async def disconnectWebsocket(self) -> None:
+        """
+        Disconnects the websocket connection.
+
+        This method closes the session, terminating the websocket connection.
+        """
         await self.session.close()
