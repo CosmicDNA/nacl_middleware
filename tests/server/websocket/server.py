@@ -28,6 +28,14 @@ from tests.server.websocket.views import index
 
 
 class SSLConfig(TypedDict):
+    """
+    Represents the SSL configuration for the server.
+
+    Attributes:
+        cert_path (str): The path to the SSL certificate file.
+        key_path (str): The path to the SSL private key file.
+    """
+
     cert_path: str
     key_path: str
 

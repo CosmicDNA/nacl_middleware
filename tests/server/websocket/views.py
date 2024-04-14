@@ -8,6 +8,9 @@ async def index(request: Request) -> Response:
 
     Args:
         request: The request from the client.
+
+    Returns:
+        A Response object with the text "index".
     """
 
     return Response(text="index")

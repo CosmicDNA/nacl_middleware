@@ -68,13 +68,25 @@ class EngineServerManager:
         return self._server.listened.status if self._server else ServerStatus.Stopped
 
     def join(self) -> None:
+        """Waits for the server to finish processing all requests and stops the server."""
         self._server.join()
 
     def add_listener(self, listener: callable) -> None:
+        """Adds a listener to the server.
+
+        Args:
+            listener (callable): The listener function to be added.
+        """
         self._server.listened.add_listener(listener)
 
     def stop_listening(self) -> None:
+        """Stops the server from listening for new connections."""
         self._server.listened.stop_listening()
 
     async def _on_message(self, data: dict) -> None:
+        """Callback function called when a message is received.
+
+        Args:
+            data (dict): The received message data.
+        """
         log.debug(f"Received message {data}")

@@ -10,6 +10,23 @@ from nacl_middleware import MailBox
 
 
 class Client:
+    """
+    Represents a client that interacts with a server using encryption.
+
+    Args:
+        host (str): The hostname or IP address of the server.
+        port (str): The port number of the server.
+        server_hex_public_key (str): The server's public key in hexadecimal format.
+        isTLS (bool): Indicates whether to use TLS encryption.
+
+    Attributes:
+        private_key (PrivateKey): The client's private key.
+        session (ClientSession): The client's HTTP session.
+        mail_box (MailBox): The client's mailbox for encryption.
+        ssl_context (SSLContext): The SSL context for TLS encryption.
+
+    """
+
     private_key: PrivateKey
     session: ClientSession
     mail_box: MailBox
@@ -18,6 +35,16 @@ class Client:
     def __init__(
         self, host: str, port: str, server_hex_public_key: str, isTLS: bool
     ) -> None:
+        """
+        Initializes a new instance of the Client class.
+
+        Args:
+            host (str): The hostname or IP address of the server.
+            port (str): The port number of the server.
+            server_hex_public_key (str): The server's public key in hexadecimal format.
+            isTLS (bool): Indicates whether to use TLS encryption.
+
+        """
         self.private_key = PrivateKey.generate()
         self.hex_public_key = self.private_key.public_key.encode(
             encoder=HexEncoder

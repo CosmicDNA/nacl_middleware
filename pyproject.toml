@@ -28,13 +28,14 @@ dependencies = [
     "aiohttp_middlewares",
     "pynacl"
 ]
-readme = "README.md"
+readme = "README.rst"
 
 
 [project.optional-dependencies]
 test = ["pytest"]
 
 dev = [
+    "docstring-gen",
     "build",
     "black",
     "flake8",
@@ -42,6 +43,11 @@ dev = [
     "pip-tools",
     "bumpversion",
     "twine"
+]
+
+docs = [
+    "sphinx",
+    "sphinx_rtd_theme"
 ]
 
 [tool.black]

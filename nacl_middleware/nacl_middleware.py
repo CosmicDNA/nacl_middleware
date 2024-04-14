@@ -29,8 +29,32 @@ def nacl_middleware(
     exclude_methods: Tuple = tuple(),
     log=getLogger(),
 ) -> Middleware:
+    """
+    Middleware function that handles NaCl encryption and decryption.
+
+    Args:
+        private_key (PrivateKey): The private key used for decryption.
+        exclude_routes (Tuple, optional): Tuple of routes to exclude from encryption/decryption. Defaults to an empty tuple.
+        exclude_methods (Tuple, optional): Tuple of HTTP methods to exclude from encryption/decryption. Defaults to an empty tuple.
+        log (Logger, optional): Logger object for logging debug messages. Defaults to getLogger().
+
+    Returns:
+        Middleware: The middleware function.
+
+    """
 
     def nacl_decryptor(public_key, encrypted_message) -> Tuple[any, MailBox]:
+        """
+        Decrypts the encrypted message using the public key.
+
+        Args:
+            public_key: The public key used for encryption.
+            encrypted_message: The encrypted message to decrypt.
+
+        Returns:
+            Tuple[any, MailBox]: A tuple containing the decrypted message and the MailBox object.
+
+        """
         if public_key in mailBoxes:
             my_mail_box = mailBoxes[public_key]
         else:
@@ -44,6 +68,20 @@ def nacl_middleware(
 
     @middleware
     async def returned_middleware(request: Request, handler: Handler) -> StreamResponse:
+        """
+        Middleware function that processes the incoming request and handles exceptions.
+
+        Args:
+            request (Request): The incoming request object.
+            handler (Handler): The handler function to be called.
+
+        Returns:
+            StreamResponse: The response object.
+
+        Raises:
+            HTTPUnauthorized: If a valid message cannot be retrieved.
+
+        """
         if not (
             is_exclude(request, exclude_routes) or request.method in exclude_methods
         ):

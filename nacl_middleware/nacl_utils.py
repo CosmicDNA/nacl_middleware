@@ -6,6 +6,10 @@ from nacl.public import Box, PrivateKey, PublicKey
 
 
 class Nacl:
+    """
+    A class that provides utility functions for encoding and decoding Nacl keys.
+    """
+
     private_key: PrivateKey
 
     def __init__(self, private_key: PrivateKey, encoder=HexEncoder) -> None:
@@ -13,22 +17,71 @@ class Nacl:
         self.encoder = encoder
 
     def _decode(self, parameter: Union[PrivateKey, PublicKey]) -> str:
+        """
+        Decode the given Nacl key parameter using the specified encoder.
+
+        Args:
+            parameter (Union[PrivateKey, PublicKey]): The Nacl key parameter to decode.
+
+        Returns:
+            str: The decoded Nacl key as a string.
+        """
         return parameter.encode(encoder=self.encoder).decode()
 
     def decodedPrivateKey(self) -> str:
+        """
+        Decode the private key using the specified encoder.
+
+        Returns:
+            str: The decoded private key as a string.
+        """
         return self._decode(self.private_key)
 
     def decodedPublicKey(self) -> str:
+        """
+        Decode the public key of the private key using the specified encoder.
+
+        Returns:
+            str: The decoded public key as a string.
+        """
         return self._decode(self.private_key.public_key)
 
 
 def custom_loads(obj) -> any:
+    """
+    Custom loads function that deserializes a JSON string into a Python object.
+
+    Args:
+        obj (str): The JSON string to be deserialized.
+
+    Returns:
+        any: The deserialized Python object.
+
+    """
     if isinstance(obj, str):
         obj = f'"{obj}"'
     return loads(obj)
 
 
 class MailBox:
+    """
+    A class representing a mailbox for encryption and decryption of messages.
+
+    Attributes:
+        _private_key (PrivateKey): The private key used for encryption and decryption.
+        _box (Box): The encryption and decryption box.
+
+    Methods:
+        __init__(self, private_key: PrivateKey, hex_public_key: str) -> None:
+            Initializes the MailBox with the provided private key and hex-encoded public key.
+
+        unbox(self, encrypted_message) -> any:
+            Decrypts the encrypted message using the private key and returns the decrypted message.
+
+        box(self, message: any) -> str:
+            Encrypts the message using the public key and returns the encrypted message as a string.
+    """
+
     _private_key: PrivateKey
     _box: Box
 

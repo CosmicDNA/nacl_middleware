@@ -23,8 +23,12 @@ class ServerStatus(Enum):
 class EngineServer:
     """A server example.
 
+    This class represents a server that can be started and stopped. It provides methods to queue messages for broadcasting
+    and register callbacks to handle received messages.
+
     Attributes:
-        status: The current status of the server.
+        listened: An instance of the Listens class representing the listeners for the server.
+        data: An instance of the Listens class representing the data received by the server.
     """
 
     listened: Listens = Listens()
@@ -110,4 +114,9 @@ class EngineServer:
         raise NotImplementedError()
 
     def register_message_callback(self, callback) -> None:
+        """Registers a callback function to handle received messages.
+
+        Args:
+            callback: The callback function to register.
+        """
         self.data.add_listener(callback)
