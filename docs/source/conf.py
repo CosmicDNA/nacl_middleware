@@ -17,7 +17,7 @@ author = "Daniel de Souza"
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ["sphinx_rtd_theme", "sphinx.ext.autodoc"]
+extensions = ["sphinx.ext.autodoc"]
 
 
 templates_path = ["_templates"]
@@ -27,7 +27,52 @@ exclude_patterns = []
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = "sphinx_rtd_theme"
+html_theme = "furo"
+
+SHARED_CSS_VARIABLES = {
+    "admonition-font-size": "1rem",
+    "admonition-title-font-size": "1rem",
+    "sidebar-item-font-size": "115%",
+}
+
+html_theme_options = {
+    "light_css_variables": {
+        "font-stack--monospace": "Inconsolata,Consolas,ui-monospace,monospace",
+        "at-color": "#830b2b",
+        "at-val-color": "#bc103e",
+        "body-color": "#14234b",
+        "color-highlight-on-target": "#e5e8ed",
+        "primary-header-color": "#0053d6",
+        "row-odd-background-color": "#f0f3f7",
+        "rst-content-a-color": "#2980b9",
+        "secondary-header-color": "#123693",
+        "wy-menu-vertical-background-color": "#0053d6",
+        "wy-menu-vertical-color": "white",
+        "wy-nav-side-background-color": "#0053d6",
+    },
+    "dark_css_variables": {
+        "at-color": "#ffaab7",
+        "at-val-color": "#ff95a6",
+        "body-color": "#14234b",
+        "color-admonition-background": "#1e1e21",
+        "color-highlight-on-target": "#3d4045",
+        "primary-header-color": "#a8caff",
+        "row-odd-background-color": "#222326",
+        "rst-content-a-color": "#2980b9",
+        "secondary-header-color": "#458dff",
+        "wy-menu-vertical-background-color": "#0053d6",
+        "wy-menu-vertical-color": "white",
+        "wy-nav-side-background-color": "#0053d6",
+    },
+}
+
+for v in html_theme_options.values():
+    if isinstance(v, dict):
+        v.update(SHARED_CSS_VARIABLES)
+
+pygments_style = "default"
+pygments_dark_style = "monokai"
+
 html_static_path = ["_static"]
 
 html_css_files = [

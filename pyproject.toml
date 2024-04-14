@@ -47,7 +47,7 @@ dev = [
 
 docs = [
     "sphinx",
-    "sphinx_rtd_theme"
+    "furo"
 ]
 
 [tool.black]
