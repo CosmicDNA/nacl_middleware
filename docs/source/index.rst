@@ -16,6 +16,9 @@ Welcome to the NaCl Middleware's documentation!
    modules
 
 
+.. sidebar-links::
+   :github:
+
 
 
 Indices and tables

@@ -47,6 +47,10 @@ dev = [
 
 docs = [
     "sphinx",
+    "sphinx_copybutton",
+    "sphinx_favicon",
+    "sphinx_reredirects",
+    "sphinx_toolbox",
     "furo"
 ]
 

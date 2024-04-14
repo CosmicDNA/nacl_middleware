@@ -1,7 +1,7 @@
 The Nacl Middleware
 ===================
 
-The Nacl Middleware is an aiohttp compatible middleware that provides NaCl encryption for authentication in both REPL requests and websockets. It allows you to securely handle encrypted messages and sender’s public keys from query parameters. Upon successful decoding, it forwards the request to the appropriate handler, whether it’s a websocket or an HTTP request.
+The Nacl Middleware is an aiohttp compatible middleware that provides NaCl encryption for authentication in both HTTP requests and websockets. It allows you to securely handle encrypted messages and sender’s public keys from query parameters. Upon successful decoding, it forwards the request to the appropriate handler, whether it’s a websocket or an HTTP request.
 
 
 Usage

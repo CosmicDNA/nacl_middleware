@@ -15,8 +15,20 @@ author = "Daniel de Souza"
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ["sphinx.ext.autodoc"]
+extensions = [
+    "sphinx.ext.autodoc",
+    "sphinx_copybutton",
+    "sphinx_favicon",
+    "sphinx_reredirects",
+    "sphinx_toolbox.collapse",
+    "sphinx_toolbox.github",
+    "sphinx_toolbox.sidebar_links",
+    "sphinx_toolbox.tweaks.param_dash",
+]
 
+# GitHub-related options
+github_username = "CosmicDNA"
+github_repository = "nacl_middleware"
 
 templates_path = ["_templates"]
 exclude_patterns = []
