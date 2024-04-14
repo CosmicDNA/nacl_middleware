@@ -111,7 +111,7 @@ Example Client Code
             mail_box = request['mail_box']
             if decrypted_message == 'Thank you!':
                 return json_response(mail_box.box('You are welcome!'))
-            return json_response(mail_box.box("Alright!"))
+            return json_response(mail_box.box("Pardon me?"))
 
         app.router.add_get('/handle_thanks', thanks_handler)
 
