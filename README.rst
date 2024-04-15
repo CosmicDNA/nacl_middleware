@@ -24,26 +24,24 @@ Example Server Code
 
 .. code-block:: python
 
-    from aiohttp.web import Application, json_response, run_app
-    from nacl.public import PrivateKey
-
+    from aiohttp.web import Application, Response, run_app
     from nacl_middleware import nacl_middleware, Nacl, MailBox
 
-    private_key = PrivateKey.generate()
-    pynacl = Nacl(private_key)
-    public_key_hex = pynacl.decodedPublicKey()
+    pynacl = Nacl()
+    public_key_hex = pynacl.decoded_public_key()
     print(public_key_hex)
 
     app = Application(middlewares=[
-        nacl_middleware(private_key)
+        nacl_middleware(pynacl.private_key)
     ])
 
     async def thanks_handler(request):
         decrypted_message = request['decrypted_message']
         mail_box: MailBox = request['mail_box']
         if decrypted_message == 'Thank you!':
-            return json_response(mail_box.box('You are welcome!'))
-        return json_response(mail_box.box("Pardon me?"))
+            text = 'You are welcome!'
+        text = "Pardon me?"
+        return Response(text = mail_box.box(text))
 
     app.router.add_get('/handle_thanks', thanks_handler)
 
@@ -57,25 +55,23 @@ Example Client Code
 
     from aiohttp import ClientSession
     from asyncio import run
-    from nacl.public import PrivateKey
     from nacl_middleware import MailBox, Nacl
 
-    private_key = PrivateKey.generate()
-    pynacl = Nacl(private_key)
+    pynacl = Nacl()
     server_hex_public_key = "cbe3b3cf345b24bd050db13bb5f1165f47f36f7151bbba9b27bdef0922674f4d"
 
     async def main():
-        mail_box = MailBox(private_key, server_hex_public_key)
+        mail_box = MailBox(pynacl.private_key, server_hex_public_key)
 
         def get_params(message):
             return {
-                "publicKey": pynacl.decodedPublicKey(),
+                "publicKey": pynacl.decoded_public_key(),
                 "encryptedMessage": mail_box.box(message)
             }
 
         async with ClientSession() as session:
             async with session.get('http://localhost:8080/handle_thanks', params=get_params('Thank you!')) as response:
-                encryted_reply = await response.json()
+                encryted_reply = await response.text()
                 reply = mail_box.unbox(encryted_reply)
                 print("Reply:", reply)
 
@@ -90,31 +86,29 @@ Example Client Code
 
     .. code-block:: python
 
-        from aiohttp.web import Application, json_response, run_app
-        from nacl.public import PrivateKey
-
+        from aiohttp.web import Application, Response, run_app
         from nacl_middleware import nacl_middleware, Nacl, MailBox
 
-        private_key = PrivateKey.generate()
-        pynacl = Nacl(private_key)
-        public_key_hex = pynacl.decodedPublicKey()
+        pynacl = Nacl()
+        public_key_hex = pynacl.decoded_public_key()
         print(public_key_hex)
 
         app = Application(middlewares=[
-            nacl_middleware(private_key, exclude_routes=['/get_public_key'])
+            nacl_middleware(pynacl.private_key)
         ])
 
         async def thanks_handler(request):
             decrypted_message = request['decrypted_message']
             mail_box: MailBox = request['mail_box']
             if decrypted_message == 'Thank you!':
-                return json_response(mail_box.box('You are welcome!'))
-            return json_response(mail_box.box("Pardon me?"))
+                text = 'You are welcome!'
+            text = "Pardon me?"
+            return Response(text = mail_box.box(text))
 
         app.router.add_get('/handle_thanks', thanks_handler)
 
         async def get_public_key(request):
-            return json_response(public_key_hex)
+            return Response(text = public_key_hex)
 
         app.router.add_get("/get_public_key", get_public_key)
 

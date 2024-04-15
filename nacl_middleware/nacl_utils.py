@@ -12,7 +12,9 @@ class Nacl:
 
     private_key: PrivateKey
 
-    def __init__(self, private_key: PrivateKey, encoder=HexEncoder) -> None:
+    def __init__(
+        self, private_key: PrivateKey = PrivateKey.generate(), encoder=HexEncoder
+    ) -> None:
         self.private_key = private_key
         self.encoder = encoder
 
@@ -28,7 +30,7 @@ class Nacl:
         """
         return parameter.encode(encoder=self.encoder).decode()
 
-    def decodedPrivateKey(self) -> str:
+    def decoded_private_key(self) -> str:
         """
         Decode the private key using the specified encoder.
 
@@ -37,7 +39,7 @@ class Nacl:
         """
         return self._decode(self.private_key)
 
-    def decodedPublicKey(self) -> str:
+    def decoded_public_key(self) -> str:
         """
         Decode the public key of the private key using the specified encoder.
 
