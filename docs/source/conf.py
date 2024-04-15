@@ -85,9 +85,4 @@ pygments_dark_style = "monokai"
 
 html_static_path = ["_static"]
 
-html_css_files = [
-    "css/rtd_dark.css",
-]
-
 sys.path.insert(0, os.path.abspath("../../"))
-print(sys.path)
