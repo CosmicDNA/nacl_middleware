@@ -26,12 +26,12 @@ Example Server Code
 
     from aiohttp.web import Application, json_response, run_app
     from nacl.public import PrivateKey
-    from nacl.encoding import HexEncoder
 
-    from nacl_middleware import nacl_middleware
+    from nacl_middleware import nacl_middleware, Nacl, MailBox
 
     private_key = PrivateKey.generate()
-    public_key_hex = private_key.public_key.encode(encoder=HexEncoder).decode()
+    pynacl = Nacl(private_key)
+    public_key_hex = pynacl.decodedPublicKey()
     print(public_key_hex)
 
     app = Application(middlewares=[
@@ -40,7 +40,7 @@ Example Server Code
 
     async def thanks_handler(request):
         decrypted_message = request['decrypted_message']
-        mail_box = request['mail_box']
+        mail_box: MailBox = request['mail_box']
         if decrypted_message == 'Thank you!':
             return json_response(mail_box.box('You are welcome!'))
         return json_response(mail_box.box("Pardon me?"))
@@ -58,10 +58,10 @@ Example Client Code
     from aiohttp import ClientSession
     from asyncio import run
     from nacl.public import PrivateKey
-    from nacl.encoding import HexEncoder
-    from nacl_middleware import MailBox
+    from nacl_middleware import MailBox, Nacl
 
     private_key = PrivateKey.generate()
+    pynacl = Nacl(private_key)
     server_hex_public_key = "cbe3b3cf345b24bd050db13bb5f1165f47f36f7151bbba9b27bdef0922674f4d"
 
     async def main():
@@ -69,9 +69,7 @@ Example Client Code
 
         def get_params(message):
             return {
-                "publicKey": private_key.public_key.encode(
-                    encoder=HexEncoder
-                ).decode(),
+                "publicKey": pynacl.decodedPublicKey(),
                 "encryptedMessage": mail_box.box(message)
             }
 
@@ -94,12 +92,12 @@ Example Client Code
 
         from aiohttp.web import Application, json_response, run_app
         from nacl.public import PrivateKey
-        from nacl.encoding import HexEncoder
 
-        from nacl_middleware import nacl_middleware
+        from nacl_middleware import nacl_middleware, Nacl, MailBox
 
         private_key = PrivateKey.generate()
-        public_key_hex = private_key.public_key.encode(encoder=HexEncoder).decode()
+        pynacl = Nacl(private_key)
+        public_key_hex = pynacl.decodedPublicKey()
         print(public_key_hex)
 
         app = Application(middlewares=[
@@ -108,7 +106,7 @@ Example Client Code
 
         async def thanks_handler(request):
             decrypted_message = request['decrypted_message']
-            mail_box = request['mail_box']
+            mail_box: MailBox = request['mail_box']
             if decrypted_message == 'Thank you!':
                 return json_response(mail_box.box('You are welcome!'))
             return json_response(mail_box.box("Pardon me?"))
@@ -116,8 +114,7 @@ Example Client Code
         app.router.add_get('/handle_thanks', thanks_handler)
 
         async def get_public_key(request):
-            decoded_public_key = Nacl(private_key).decodedPublicKey()
-            return json_response(decoded_public_key)
+            return json_response(public_key_hex)
 
         app.router.add_get("/get_public_key", get_public_key)
 
