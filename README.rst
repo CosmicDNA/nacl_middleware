@@ -1,6 +1,14 @@
 The Nacl Middleware
 ===================
 
+.. image:: https://readthedocs.org/projects/nacl-middleware/badge/?version=latest
+    :target: https://nacl-middleware.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
+.. image:: https://github.com/CosmicDNA/nacl_middleware/actions/workflows/pytest.yml/badge.svg
+    :target: https://github.com/CosmicDNA/nacl_middleware/actions/workflows/pytest.yml
+    :alt: Python Tests
+
 The Nacl Middleware is an aiohttp compatible middleware that provides NaCl encryption for authentication in both HTTP requests and websockets. It allows you to securely handle encrypted messages and sender’s public keys from query parameters. Upon successful decoding, it forwards the request to the appropriate handler, whether it’s a websocket or an HTTP request.
 
 

@@ -52,11 +52,11 @@ class ServerConfig:
             nacl_helper = Nacl(private_key, encoder)
             log.debug(f"Nacl {nacl_helper} instanced!")
             log.debug("Decoding private key...")
-            decoded_private_key = nacl_helper.decodedPrivateKey()
+            decoded_private_key = nacl_helper.decoded_private_key()
             log.debug(f"Private key {decoded_private_key} decoded!")
             data["private_key"] = decoded_private_key
             log.debug("Decoding public key...")
-            public_key = nacl_helper.decodedPublicKey()
+            public_key = nacl_helper.decoded_public_key()
             log.debug(f"Public key {public_key} decoded!")
             data["public_key"] = public_key
             log.debug(f"Resulting data is: {data}")
