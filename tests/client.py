@@ -126,12 +126,12 @@ class Client:
             params (dict, optional): The query parameters to include in the request. Defaults to None.
 
         Returns:
-            any: The JSON response from the server, or None if an error occurred.
+            any: The response from the server, or None if an error occurred.
 
         """
         try:
             async with self.session.get(url, params=params) as response:
-                return await response.json()
+                return await response.text()
         except ClientError as e:
             # Handle connection errors here
             print(f"Error fetching data: {e}")
