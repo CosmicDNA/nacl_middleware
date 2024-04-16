@@ -10,8 +10,7 @@ Welcome to the NaCl Middleware's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-
-   readme_link
+   readme
 
    modules
 

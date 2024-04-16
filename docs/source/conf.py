@@ -17,6 +17,8 @@ author = "Daniel de Souza"
 
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.viewcode",
     "sphinx_copybutton",
     "sphinx_favicon",
     "sphinx_reredirects",
@@ -26,6 +28,8 @@ extensions = [
     "sphinx_toolbox.tweaks.param_dash",
 ]
 
+autosummary_generate = True
+
 # GitHub-related options
 github_username = "CosmicDNA"
 github_repository = "nacl_middleware"
@@ -33,6 +37,8 @@ github_repository = "nacl_middleware"
 templates_path = ["_templates"]
 exclude_patterns = []
 
+
+github_url = "https://github.com/{github_username}/{github_repository}"
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output

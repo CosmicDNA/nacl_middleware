@@ -27,70 +27,13 @@ The middleware uses assymetric keys encryption and it is installed on the server
 +-------------------+----------------------------------------------------+
 
 
-Example Server Code
-^^^^^^^^^^^^^^^^^^^
+Server Example
+^^^^^^^^^^^^^^
 
-.. code-block:: python
+.. admonition:: Example
+   :class: toggle
 
-    from aiohttp.web import Application, Response, run_app
-    from nacl_middleware import nacl_middleware, Nacl, MailBox
-
-    pynacl = Nacl()
-    public_key_hex = pynacl.decoded_public_key()
-    print(public_key_hex)
-
-    app = Application(middlewares=[
-        nacl_middleware(pynacl.private_key)
-    ])
-
-    async def thanks_handler(request):
-        decrypted_message = request['decrypted_message']
-        mail_box: MailBox = request['mail_box']
-        if decrypted_message == 'Thank you!':
-            text = 'You are welcome!'
-        text = "Pardon me?"
-        return Response(text = mail_box.box(text))
-
-    app.router.add_get('/handle_thanks', thanks_handler)
-
-    run_app(app)
-
-
-Example Client Code
-^^^^^^^^^^^^^^^^^^^
-
-.. code-block:: python
-
-    from aiohttp import ClientSession
-    from asyncio import run
-    from nacl_middleware import MailBox, Nacl
-
-    pynacl = Nacl()
-    server_hex_public_key = "cbe3b3cf345b24bd050db13bb5f1165f47f36f7151bbba9b27bdef0922674f4d"
-
-    async def main():
-        mail_box = MailBox(pynacl.private_key, server_hex_public_key)
-
-        def get_params(message):
-            return {
-                "publicKey": pynacl.decoded_public_key(),
-                "encryptedMessage": mail_box.box(message)
-            }
-
-        async with ClientSession() as session:
-            async with session.get('http://localhost:8080/handle_thanks', params=get_params('Thank you!')) as response:
-                encryted_reply = await response.text()
-                reply = mail_box.unbox(encryted_reply)
-                print("Reply:", reply)
-
-    run(main())
-
-.. warning::
-
-    Make sure the server's public key in this client code example is correctly set to the public key print by the server's example code in the console.
-
-.. tip::
-   Add a path to get the server's public key to the middleware's route exclusion to allow the server's public key to be obtained by sending a GET request to the server's public key endpoint with, for example:
+    Here is one usage example on the server side:
 
     .. code-block:: python
 
@@ -115,13 +58,85 @@ Example Client Code
 
         app.router.add_get('/handle_thanks', thanks_handler)
 
-        async def get_public_key(request):
-            return Response(text = public_key_hex)
-
-        app.router.add_get("/get_public_key", get_public_key)
-
         run_app(app)
 
+
+Client Example
+^^^^^^^^^^^^^^
+
+.. admonition:: Example
+   :class: toggle
+
+    And the matching usage example on the client side:
+
+    .. code-block:: python
+
+        from aiohttp import ClientSession
+        from asyncio import run
+        from nacl_middleware import MailBox, Nacl
+
+        pynacl = Nacl()
+        server_hex_public_key = "cbe3b3cf345b24bd050db13bb5f1165f47f36f7151bbba9b27bdef0922674f4d"
+
+        async def main():
+            mail_box = MailBox(pynacl.private_key, server_hex_public_key)
+
+            def get_params(message):
+                return {
+                    "publicKey": pynacl.decoded_public_key(),
+                    "encryptedMessage": mail_box.box(message)
+                }
+
+            async with ClientSession() as session:
+                async with session.get('http://localhost:8080/handle_thanks', params=get_params('Thank you!')) as response:
+                    encryted_reply = await response.text()
+                    reply = mail_box.unbox(encryted_reply)
+                    print("Reply:", reply)
+
+        run(main())
+
+    .. warning::
+
+        Make sure the server's public key in this client code example is correctly set to the public key print by the server's example code in the console.
+
+    .. tip::
+
+        Add a path to get the server's public key to the middleware's route exclusion to allow the server's public key to be obtained by sending a GET request to the server's public key endpoint with, for example:
+
+        .. code-block:: python
+
+            from aiohttp.web import Application, Response, run_app
+            from nacl_middleware import nacl_middleware, Nacl, MailBox
+
+            pynacl = Nacl()
+            public_key_hex = pynacl.decoded_public_key()
+            print(public_key_hex)
+
+            app = Application(middlewares=[
+                nacl_middleware(pynacl.private_key)
+            ])
+
+            async def thanks_handler(request):
+                decrypted_message = request['decrypted_message']
+                mail_box: MailBox = request['mail_box']
+                if decrypted_message == 'Thank you!':
+                    text = 'You are welcome!'
+                text = "Pardon me?"
+                return Response(text = mail_box.box(text))
+
+            app.router.add_get('/handle_thanks', thanks_handler)
+
+            async def get_public_key(request):
+                return Response(text = public_key_hex)
+
+            app.router.add_get("/get_public_key", get_public_key)
+
+            run_app(app)
+
+
+.. important::
+
+    For an example of usage with websockets, please refer to the client and server modules within tests folder.
 
 Development
 ===========
