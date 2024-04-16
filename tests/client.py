@@ -3,10 +3,9 @@ from ssl import Purpose, SSLContext, create_default_context
 from aiohttp import ClientError, ClientSession, TCPConnector
 from aiohttp.typedefs import LooseHeaders
 from multidict import MultiMapping
-from nacl.encoding import HexEncoder
 from nacl.public import PrivateKey
 
-from nacl_middleware import MailBox
+from nacl_middleware import MailBox, Nacl
 
 
 class Client:
@@ -46,9 +45,7 @@ class Client:
 
         """
         self.private_key = PrivateKey.generate()
-        self.hex_public_key = self.private_key.public_key.encode(
-            encoder=HexEncoder
-        ).decode()
+        self.hex_public_key = Nacl(self.private_key).decoded_public_key()
         self.isTLS = isTLS
         self.host = host
         self.port = port
@@ -65,7 +62,7 @@ class Client:
         self.session = ClientSession(connector=connector, headers=self.headers)
         self.mail_box = MailBox(self.private_key, server_hex_public_key)
 
-    def _getEncryptionParams(self, message) -> MultiMapping[str]:
+    def _get_encryption_params(self, message) -> MultiMapping[str]:
         """
         Returns the encryption parameters for the given message.
 
@@ -140,7 +137,7 @@ class Client:
             print(f"Error fetching data: {e}")
             return None
 
-    async def sendMessage(self, message) -> any:
+    async def send_message(self, message) -> any:
         """
         Sends a message to the server and returns the decrypted response.
 
@@ -155,10 +152,12 @@ class Client:
         """
         url = f"http{self.protocol()}://{self.host}:{self.port}/protocol"
 
-        encrypted_res = await self.fetch(url, params=self._getEncryptionParams(message))
+        encrypted_res = await self.fetch(
+            url, params=self._get_encryption_params(message)
+        )
         return self.decrypt(encrypted_res)
 
-    async def sendWebSocketMessage(self, message) -> None:
+    async def send_websocket_message(self, message) -> None:
         """
         Sends a WebSocket message after encrypting it.
 
@@ -170,7 +169,7 @@ class Client:
         """
         await self.socket.send_str(self.encrypt(message))
 
-    async def connectToWebsocket(self, message) -> None:
+    async def connect_to_websocket(self, message) -> None:
         """
         Connects to the websocket server.
 
@@ -184,12 +183,12 @@ class Client:
 
         self.socket = await self.session.ws_connect(
             url,
-            params=self._getEncryptionParams(message),
+            params=self._get_encryption_params(message),
             headers=self.headers,
             ssl=self.ssl_context,
         )
 
-    async def disconnectWebsocket(self) -> None:
+    async def disconnect_websocket(self) -> None:
         """
         Disconnects the websocket connection.
 

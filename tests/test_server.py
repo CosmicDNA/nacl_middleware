@@ -24,11 +24,11 @@ async def status_change_listener(status) -> None:
             server_config.public_key,
             True if server_config.ssl else False,
         )
-        data = await client.sendMessage({"messageOne": "testOne"})
+        data = await client.send_message({"messageOne": "testOne"})
         assert data == f"ws{client.protocol()}://"
-        await client.connectToWebsocket({"messageTwo": "testTwo"})
-        await client.sendWebSocketMessage({"name": "Georgia"})
-        await client.disconnectWebsocket()
+        await client.connect_to_websocket({"messageTwo": "testTwo"})
+        await client.send_websocket_message({"name": "Georgia"})
+        await client.disconnect_websocket()
         esm.stop()
 
 
