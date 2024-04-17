@@ -1,6 +1,9 @@
 """The middleman between Plover and the server."""
 
 import os
+from operator import itemgetter
+
+from aiohttp.web import WebSocketResponse
 
 from tests.server.config import ServerConfig
 from tests.server.errors import ERROR_NO_SERVER, ERROR_SERVER_RUNNING
@@ -55,6 +58,7 @@ class EngineServerManager:
         if self.get_server_status() != ServerStatus.Running:
             raise AssertionError(ERROR_NO_SERVER)
 
+        self._server.data.stop_listening()
         self.stop_listening()
         self._server.queue_stop()
 
@@ -80,13 +84,20 @@ class EngineServerManager:
         self._server.listened.add_listener(listener)
 
     def stop_listening(self) -> None:
-        """Stops the server from listening for new connections."""
+        """Stops the server from listening for status changes."""
         self._server.listened.stop_listening()
 
     async def _on_message(self, data: dict) -> None:
-        """Callback function called when a message is received.
+        """
+        Process the received message.
 
         Args:
             data (dict): The received message data.
+
+        Returns:
+            None
         """
-        log.debug(f"Received message {data}")
+        decrypted: dict = itemgetter("decrypted")(data)
+        log.info(f"Received data {decrypted}")
+        socket: WebSocketResponse = itemgetter("socket")(data)
+        await socket.send_json(decrypted)

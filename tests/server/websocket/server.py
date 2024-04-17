@@ -135,6 +135,8 @@ class WebSocketServer(EngineServer):
                         await socket.close()
                         continue
 
+                    self.data.status = {"decrypted": decrypted, "socket": socket}
+
                 elif message.type == WSMsgType.ERROR:
                     log.info(
                         "WebSocket connection closed with exception "

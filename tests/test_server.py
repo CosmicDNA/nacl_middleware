@@ -1,58 +1,97 @@
 from asyncio import get_event_loop
+from collections.abc import Awaitable
+
+from pytest import mark
 
 from tests.client import Client
 from tests.server import EngineServerManager, ServerConfig, ServerStatus, log
 
 server_config = ServerConfig("./config.json")
-esm = EngineServerManager()
 
 
-async def status_change_listener(status) -> None:
+async def websocket(client: Client):
     """
-    Listens for status changes and performs actions based on the status.
+    Callback function for handling websocket connections.
 
     Args:
-        status: The status of the server.
+        client (Client): The client object representing the websocket connection.
 
     Returns:
         None
     """
-    if status == ServerStatus.Running:
-        client = Client(
-            server_config.host,
-            server_config.port,
-            server_config.public_key,
-            True if server_config.ssl else False,
-        )
-        data = await client.send_message({"messageOne": "testOne"})
-        assert data == f"ws{client.protocol()}://"
-        await client.connect_to_websocket({"messageTwo": "testTwo"})
-        await client.send_websocket_message({"name": "Georgia"})
-        await client.disconnect_websocket()
-        esm.stop()
+    await client.connect_to_websocket({"messageTwo": "testTwo"})
+    message = {"name": "Georgia"}
+    await client.send_websocket_message(message)
+    reply = await client.receive_json()
+    assert reply == message
 
 
-async def server_loop_handler() -> None:
+async def http(client: Client):
     """
-    Handles the server loop by adding a status change listener, starting the event service manager,
-    and joining the event service manager thread. Finally, it logs a message indicating that the
-    main thread is being joined.
-    """
-    esm.add_listener(status_change_listener)
-    esm.start()
-    esm.join()
-    log.info("Joining main thread...")
+    This function is the callback for HTTP requests.
 
-
-def test_middleware() -> None:
-    """
-    Test the middleware function.
-
-    This function runs the server loop handler in an event loop and logs a message when it completes.
+    Args:
+        client (Client): The client making the HTTP request.
 
     Returns:
         None
     """
+    pass
+
+
+@mark.parametrize("callback", [http, websocket])
+def test_server(callback: Awaitable) -> None:
+    """
+    Test the server functionality.
+
+    Args:
+        callback (Awaitable): The callback function to be executed.
+
+    Returns:
+        None
+    """
+    esm = EngineServerManager()
+
+    async def server_loop_handler() -> None:
+        """
+        Handles the server loop by starting the server, waiting for it to run,
+        and then executing the callback function when the server is running.
+
+        Args:
+            callback (Awaitable): The callback function to be executed when the server is running.
+
+        Returns:
+            None
+        """
+
+        async def status_change_listener(status) -> None:
+            """
+            Listens for status changes and performs actions based on the status.
+
+            Args:
+                status: The status of the server.
+
+            Returns:
+                None
+            """
+            if status == ServerStatus.Running:
+                client = Client(
+                    server_config.host,
+                    server_config.port,
+                    server_config.public_key,
+                    True if server_config.ssl else False,
+                )
+                data = await client.send_message({"messageOne": "testOne"})
+                assert data == f"ws{client.protocol()}://"
+                await callback(client)
+                await client.disconnect()
+                esm.stop()
+
+        esm.add_listener(status_change_listener)
+        esm.start()
+        esm.join()
+        log.info("Joining main thread...")
+
     loop = get_event_loop()
     loop.run_until_complete(server_loop_handler())
     log.info("Joined!")

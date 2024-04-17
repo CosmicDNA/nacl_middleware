@@ -1,6 +1,6 @@
 from ssl import Purpose, SSLContext, create_default_context
 
-from aiohttp import ClientError, ClientSession, TCPConnector
+from aiohttp import ClientError, ClientSession, ClientWebSocketResponse, TCPConnector
 from aiohttp.typedefs import LooseHeaders
 from multidict import MultiMapping
 from nacl.public import PrivateKey
@@ -30,6 +30,7 @@ class Client:
     session: ClientSession
     mail_box: MailBox
     ssl_context: SSLContext
+    socket: ClientWebSocketResponse
 
     def __init__(
         self, host: str, port: str, server_hex_public_key: str, isTLS: bool
@@ -44,8 +45,9 @@ class Client:
             isTLS (bool): Indicates whether to use TLS encryption.
 
         """
-        self.private_key = PrivateKey.generate()
-        self.hex_public_key = Nacl(self.private_key).decoded_public_key()
+        pynacl = Nacl()
+        self.private_key = pynacl.private_key
+        self.hex_public_key = pynacl.decoded_public_key()
         self.isTLS = isTLS
         self.host = host
         self.port = port
@@ -188,10 +190,13 @@ class Client:
             ssl=self.ssl_context,
         )
 
-    async def disconnect_websocket(self) -> None:
-        """
-        Disconnects the websocket connection.
+    async def receive_json(self):
+        return await self.socket.receive_json()
 
-        This method closes the session, terminating the websocket connection.
+    async def disconnect(self) -> None:
+        """
+        Disconnects the client from the server.
+
+        This method closes the session, terminating the connection with the server.
         """
         await self.session.close()
